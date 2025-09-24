@@ -7,6 +7,9 @@ create table if not exists public.projects (
 	background_color text default '#ffffff',
 	google_drive_folder_id text,
 	google_drive_refresh_token text,
+	-- Supabase Storage integration
+	storage_bucket text,
+	storage_prefix text,
 	created_at timestamptz default now()
 );
 

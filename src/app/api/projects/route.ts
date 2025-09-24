@@ -10,14 +10,15 @@ export async function POST(request: Request) {
 	if (userError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
 	const body = await request.json();
-	const { name, backgroundColor, logoUrl, driveFolderId } = body;
+	const { name, backgroundColor, logoUrl, storageBucket, storagePrefix } = body;
 	const { data, error } = await supabase
 		.from("projects")
 		.insert({
 			name,
 			background_color: backgroundColor,
 			logo_url: logoUrl,
-			google_drive_folder_id: driveFolderId,
+			storage_bucket: storageBucket,
+			storage_prefix: storagePrefix,
 			owner: user.id,
 		})
 		.select("id")

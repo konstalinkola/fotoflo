@@ -1,15 +1,14 @@
 # Kuvapalvelin (MVP)
 
-Next.js + Supabase + Google Drive. Shows a QR code that always points to the latest image in a connected Drive folder.
+Next.js + Supabase. Shows a QR code that always points to the latest image in a Supabase Storage bucket path.
 
 ## Stack
 - Next.js (App Router, Tailwind)
-- Supabase (DB + Auth)
-- Google Drive API
+- Supabase (DB + Auth + Storage)
 - qrcode.react
 
 ## Setup
-1. Copy env:
+1. Env:
 ```
 cp .env.local.example .env.local
 ```
@@ -17,12 +16,14 @@ Fill:
 - NEXT_PUBLIC_SUPABASE_URL
 - NEXT_PUBLIC_SUPABASE_ANON_KEY
 - NEXT_PUBLIC_SITE_URL (e.g. http://localhost:3000)
-- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REDIRECT_URI (http://localhost:3000/api/google/callback)
 
 2. Database (projects table):
 Run the SQL in `supabase.sql` in your Supabase project (SQL Editor).
 
-3. Install deps and run:
+3. Create a bucket
+- In Supabase Storage, create a bucket (e.g., `photos`). Public or private both work; private uses signed URLs.
+
+4. Install deps and run:
 ```
 npm install
 npm run dev
@@ -33,11 +34,15 @@ npm run dev
 - Protected pages under /dashboard
 
 ## Projects
-- Create at `/project/new` (name, branding, Drive folder ID)
-- Connect Google Drive: open `/api/projects/<projectId>/google/connect` to grant Drive read-only access. This stores a refresh token on the project.
+- Create at `/project/new` with:
+  - Name, branding
+  - Storage bucket (e.g. `photos`)
+  - Storage prefix (e.g. `project_123/`)
+- Upload photos into that bucket path. The newest file becomes the QR target.
 
 ## Public QR
-- Public page at `/public/<projectId>` polls `/api/projects/<projectId>/latest` for the latest image URL.
+- Public page at `/public/<projectId>` polls `/api/projects/<projectId>/latest` and returns a signed URL (1h) for the newest file in the configured bucket/prefix.
 
 ## Notes
-- Replace demo placeholder image by connecting Google Drive and providing a valid folder ID. The API route will use the refresh token to list files and return the newest image link.
+- If your bucket is public, you can serve public URLs instead of signed URLs.
+- For automated uploads, you can use tools like `rclone` to sync a local folder to your Supabase bucket path.

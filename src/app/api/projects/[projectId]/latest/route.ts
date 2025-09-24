@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getGoogleDriveClientFromRefreshToken } from "@/lib/google";
 
 export async function GET(
 	request: Request,
@@ -8,33 +7,34 @@ export async function GET(
 ) {
 	const { projectId } = params;
 
-	// Load project
 	const supabase = createSupabaseServerClient();
 	const { data: project, error } = await supabase
 		.from("projects")
-		.select("google_drive_folder_id, google_drive_refresh_token")
+		.select("storage_bucket, storage_prefix")
 		.eq("id", projectId)
 		.single();
 	if (error || !project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
-	if (!project.google_drive_refresh_token || !project.google_drive_folder_id) {
-		return NextResponse.json({ url: null });
-	}
+	if (!project.storage_bucket) return NextResponse.json({ url: null });
+
+	const bucket = project.storage_bucket as string;
+	const prefix = (project.storage_prefix || "") as string;
 
 	try {
-		const drive = getGoogleDriveClientFromRefreshToken(project.google_drive_refresh_token);
-		const { data } = await drive.files.list({
-			q: `'${project.google_drive_folder_id}' in parents and trashed = false`,
-			orderBy: "createdTime desc",
-			pageSize: 1,
-			fields: "files(id, name, mimeType)"
+		const { data: list, error: listError } = await supabase.storage.from(bucket).list(prefix, {
+			limit: 100,
+			sortBy: { column: "created_at", order: "desc" },
 		});
-		const file = data.files?.[0];
-		if (!file) return NextResponse.json({ url: null });
+		if (listError) throw listError;
+		if (!list || list.length === 0) return NextResponse.json({ url: null });
 
-		// Get a webContentLink or generate a view URL via files.get
-		const { data: fileMeta } = await drive.files.get({ fileId: file.id!, fields: "id, webViewLink, webContentLink" });
-		const url = fileMeta.webContentLink || fileMeta.webViewLink || null;
-		return NextResponse.json({ url });
+		// Pick the newest file (list is already sorted desc if supported)
+		const newest = list[0];
+		const fullPath = prefix ? `${prefix.replace(/\/+$/, "")}/${newest.name}` : newest.name;
+
+		// Generate a signed URL (valid for 1 hour)
+		const { data: signed, error: signError } = await supabase.storage.from(bucket).createSignedUrl(fullPath, 3600);
+		if (signError) throw signError;
+		return NextResponse.json({ url: signed.signedUrl });
 	} catch (e: any) {
 		return NextResponse.json({ error: e.message }, { status: 500 });
 	}
