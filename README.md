@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kuvapalvelin (MVP)
 
-## Getting Started
+Next.js + Supabase + Google Drive. Shows a QR code that always points to the latest image in a connected Drive folder.
 
-First, run the development server:
+## Stack
+- Next.js (App Router, Tailwind)
+- Supabase (DB + Auth)
+- Google Drive API
+- qrcode.react
 
-```bash
+## Setup
+1. Copy env:
+```
+cp .env.local.example .env.local
+```
+Fill:
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_SITE_URL (e.g. http://localhost:3000)
+- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_REDIRECT_URI (http://localhost:3000/api/google/callback)
+
+2. Database (projects table):
+Run the SQL in `supabase.sql` in your Supabase project (SQL Editor).
+
+3. Install deps and run:
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Auth
+- Sign in at /login (Supabase Auth with Google)
+- Protected pages under /dashboard
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Projects
+- Create at `/project/new` (name, branding, Drive folder ID)
+- Connect Google Drive: open `/api/projects/<projectId>/google/connect` to grant Drive read-only access. This stores a refresh token on the project.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Public QR
+- Public page at `/public/<projectId>` polls `/api/projects/<projectId>/latest` for the latest image URL.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+- Replace demo placeholder image by connecting Google Drive and providing a valid folder ID. The API route will use the refresh token to list files and return the newest image link.
