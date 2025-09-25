@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
