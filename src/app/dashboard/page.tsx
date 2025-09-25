@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function DashboardPage() {
 	const supabase = createSupabaseServerClient();
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
 				{projects && projects.length > 0 ? projects.map((p) => (
 					<div key={p.id} className="p-4 flex items-center justify-between gap-4">
 						<div className="flex items-center gap-3">
-							{p.logo_url ? <img src={p.logo_url} alt="logo" className="h-8 w-8 object-contain"/> : null}
+							{p.logo_url ? <Image src={p.logo_url} alt="logo" width={32} height={32} className="h-8 w-8 object-contain"/> : null}
 							<div>
 								<div className="font-medium">{p.name}</div>
 								<div className="text-xs text-gray-500">{p.storage_bucket}{p.storage_prefix ? `/${p.storage_prefix}` : ""}</div>

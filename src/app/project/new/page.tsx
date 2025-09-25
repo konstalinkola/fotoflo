@@ -24,8 +24,8 @@ export default function NewProjectPage() {
 			if (!res.ok) throw new Error("Failed to create project");
 			const data = await res.json();
 			setCreatedId(data.id);
-		} catch (e: any) {
-			alert(e.message);
+		} catch (e: unknown) {
+			alert(e instanceof Error ? e.message : "An error occurred");
 		} finally {
 			setSaving(false);
 		}

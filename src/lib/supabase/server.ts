@@ -15,12 +15,12 @@ export function createSupabaseServerClient() {
 			get(name: string) {
 				return cookieStore.get(name)?.value;
 			},
-			set(name: string, value: string, options: any) {
+			set(name: string, value: string, options: { [key: string]: any }) {
 				try {
 					cookieStore.set(name, value, options);
 				} catch {}
 			},
-			remove(name: string, options: any) {
+			remove(name: string, options: { [key: string]: any }) {
 				try {
 					cookieStore.set(name, "", { ...options, maxAge: 0 });
 				} catch {}

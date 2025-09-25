@@ -42,8 +42,8 @@ export default function EditProjectPage() {
 			});
 			if (!res.ok) throw new Error("Failed to save");
 			router.push("/dashboard");
-		} catch (e: any) {
-			alert(e.message);
+		} catch (e: unknown) {
+			alert(e instanceof Error ? e.message : "An error occurred");
 		} finally {
 			setSaving(false);
 		}

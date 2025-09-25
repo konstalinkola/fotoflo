@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
+import Image from "next/image";
 
 export default function PublicProjectPage() {
 	const params = useParams<{ projectId: string }>();
@@ -37,7 +38,7 @@ export default function PublicProjectPage() {
 		<div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: bgColor }}>
 			<div className="flex flex-col items-center gap-6">
 				{logoUrl ? (
-					<img src={logoUrl} alt="Logo" className="max-h-20 object-contain" />
+					<Image src={logoUrl} alt="Logo" width={80} height={80} className="max-h-20 object-contain" />
 				) : null}
 				{latestUrl ? (
 					<QRCodeCanvas value={latestUrl} size={280} includeMargin />
