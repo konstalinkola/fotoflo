@@ -46,3 +46,4 @@ npm run dev
 ## Notes
 - If your bucket is public, you can serve public URLs instead of signed URLs.
 - For automated uploads, you can use tools like `rclone` to sync a local folder to your Supabase bucket path.
+# Force deployment
