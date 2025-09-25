@@ -21,6 +21,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 	const [images, setImages] = useState<ImageData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [activeImagePath, setActiveImagePath] = useState<string | null>(null);
 
 	const fetchImages = async () => {
 		setLoading(true);
@@ -39,8 +40,41 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 		}
 	};
 
+	const fetchActiveImage = async () => {
+		try {
+			const response = await fetch(`/api/projects/${projectId}/active-image`);
+			if (response.ok) {
+				const data = await response.json();
+				setActiveImagePath(data.active_image_path);
+			}
+		} catch (err) {
+			// Ignore errors for active image fetch
+		}
+	};
+
+	const handleImageClick = async (imagePath: string) => {
+		try {
+			const response = await fetch(`/api/projects/${projectId}/active-image`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ image_path: imagePath }),
+			});
+			
+			if (response.ok) {
+				setActiveImagePath(imagePath);
+				// Show success message
+				alert("Image activated! QR code will now show this image.");
+			} else {
+				alert("Failed to activate image");
+			}
+		} catch (error) {
+			alert("Error activating image");
+		}
+	};
+
 	useEffect(() => {
 		fetchImages();
+		fetchActiveImage();
 	}, [projectId]);
 
 	const formatFileSize = (bytes?: number) => {
@@ -112,14 +146,18 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			) : (
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 					{images.map((image, index) => (
-						<div key={image.path} className="relative">
-							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+						<div 
+							key={image.path} 
+							className="relative cursor-pointer group"
+							onClick={() => handleImageClick(image.path)}
+						>
+							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-blue-500 transition-colors">
 								{image.url ? (
 									<Image
 										src={image.url}
 										alt={image.name}
 										fill
-										className="object-cover"
+										className="object-cover group-hover:scale-105 transition-transform duration-200"
 										sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
 									/>
 								) : (
@@ -130,12 +168,24 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 									</div>
 								)}
 							</div>
-							{/* Simple latest badge */}
+							{/* Active indicator */}
+							{image.path === activeImagePath && (
+								<div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+									Active
+								</div>
+							)}
+							{/* Latest badge */}
 							{index === 0 && (
 								<div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded font-medium">
 									Latest
 								</div>
 							)}
+							{/* Click hint */}
+							<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
+								<div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white text-black text-xs px-2 py-1 rounded font-medium">
+									Click to activate
+								</div>
+							</div>
 						</div>
 					))}
 				</div>

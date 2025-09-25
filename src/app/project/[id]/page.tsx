@@ -18,6 +18,8 @@ export default function EditProjectPage() {
 	const [storagePrefix, setStoragePrefix] = useState("");
 	const [uploadMessage, setUploadMessage] = useState("");
 	const [galleryRefresh, setGalleryRefresh] = useState(0);
+	const [qrVisibilityDuration, setQrVisibilityDuration] = useState(0);
+	const [qrExpiresOnClick, setQrExpiresOnClick] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -30,6 +32,8 @@ export default function EditProjectPage() {
 			setBackgroundColor(data.background_color || "#ffffff");
 			setStorageBucket(data.storage_bucket || "");
 			setStoragePrefix(data.storage_prefix || "");
+			setQrVisibilityDuration(data.qr_visibility_duration || 0);
+			setQrExpiresOnClick(data.qr_expires_on_click || false);
 			setLoading(false);
 		})();
 	}, [id]);
@@ -40,7 +44,15 @@ export default function EditProjectPage() {
 			const res = await fetch(`/api/projects/${id}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ name, logo_url: logoUrl, background_color: backgroundColor, storage_bucket: storageBucket, storage_prefix: storagePrefix }),
+				body: JSON.stringify({ 
+					name, 
+					logo_url: logoUrl, 
+					background_color: backgroundColor, 
+					storage_bucket: storageBucket, 
+					storage_prefix: storagePrefix,
+					qr_visibility_duration: qrVisibilityDuration,
+					qr_expires_on_click: qrExpiresOnClick
+				}),
 			});
 			if (!res.ok) throw new Error("Failed to save");
 			router.push("/dashboard");
@@ -212,6 +224,38 @@ export default function EditProjectPage() {
 										placeholder="folder/subfolder"
 									/>
 								</div>
+								
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">QR Code Visibility Duration</label>
+									<select 
+										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+										value={qrVisibilityDuration}
+										onChange={e => setQrVisibilityDuration(Number(e.target.value))}
+									>
+										<option value={0}>Forever</option>
+										<option value={1}>1 minute</option>
+										<option value={2}>2 minutes</option>
+										<option value={5}>5 minutes</option>
+										<option value={10}>10 minutes</option>
+										<option value={30}>30 minutes</option>
+										<option value={60}>1 hour</option>
+									</select>
+									<p className="text-xs text-gray-500 mt-1">How long the QR code stays visible after a new image is uploaded</p>
+								</div>
+								
+								<div className="flex items-center gap-3">
+									<input 
+										type="checkbox"
+										id="qrExpiresOnClick"
+										checked={qrExpiresOnClick}
+										onChange={e => setQrExpiresOnClick(e.target.checked)}
+										className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+									/>
+									<label htmlFor="qrExpiresOnClick" className="text-sm font-medium text-gray-700">
+										QR code expires after first view
+									</label>
+								</div>
+								<p className="text-xs text-gray-500">When enabled, the QR code disappears after someone opens the link once</p>
 							</div>
 							
 							<div className="flex items-center gap-3 mt-6 pt-6 border-t">
