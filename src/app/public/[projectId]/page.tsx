@@ -15,10 +15,26 @@ export default function PublicProjectPage() {
 	const [qrVisibilityDuration, setQrVisibilityDuration] = useState<number>(0);
 	const [qrExpiresOnClick, setQrExpiresOnClick] = useState<boolean>(false);
 	const [hasBeenViewed, setHasBeenViewed] = useState<boolean>(false);
+	const [customization, setCustomization] = useState<any>(null);
 
 	useEffect(() => {
 		if (!projectId) return;
 		let isMounted = true;
+		
+		async function fetchCustomization() {
+			try {
+				const res = await fetch(`/api/projects/${projectId}/customization`);
+				if (res.ok) {
+					const data = await res.json();
+					if (isMounted && data.settings) {
+						setCustomization(data.settings);
+					}
+				}
+			} catch (error) {
+				// Ignore customization errors
+			}
+		}
+		
 		async function fetchLatest() {
 			const res = await fetch(`/api/projects/${projectId}/latest`);
 			if (!res.ok) return;
@@ -40,6 +56,8 @@ export default function PublicProjectPage() {
 				setHasBeenViewed(false);
 			}
 		}
+		
+		fetchCustomization();
 		fetchLatest();
 		const id = setInterval(fetchLatest, 5000);
 		return () => {
@@ -67,13 +85,38 @@ export default function PublicProjectPage() {
 		}
 	};
 
+	// Use customization settings if available, otherwise use defaults
+	const displayBgColor = customization?.backgroundColor || bgColor;
+	const logoSize = customization?.logoSize || 80;
+	const logoPosition = customization?.logoPosition || { x: 0, y: -100 };
+	const textContent = customization?.textContent || "";
+	const textPosition = customization?.textPosition || { x: 0, y: 150 };
+	const textColor = customization?.textColor || "#333333";
+	const textSize = customization?.textSize || 16;
+
 	return (
-		<div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: bgColor }}>
-			<div className="flex flex-col items-center gap-6">
-				{logoUrl ? (
-					<Image src={logoUrl} alt="Logo" width={80} height={80} className="max-h-20 object-contain" />
-				) : null}
+		<div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: displayBgColor }}>
+			<div className="relative flex flex-col items-center gap-6">
+				{/* Logo with custom positioning */}
+				{logoUrl && (
+					<div 
+						className="absolute"
+						style={{
+							transform: `translate(${logoPosition.x}px, ${logoPosition.y}px)`,
+							zIndex: 10
+						}}
+					>
+						<Image 
+							src={logoUrl} 
+							alt="Logo" 
+							width={logoSize} 
+							height={logoSize} 
+							className="object-contain" 
+						/>
+					</div>
+				)}
 				
+				{/* QR Code */}
 				{latestUrl && qrVisible ? (
 					<div className="relative">
 						<QRCodeCanvas 
@@ -96,6 +139,21 @@ export default function PublicProjectPage() {
 					</div>
 				) : (
 					<div className="text-gray-700">Waiting for latest photo…</div>
+				)}
+				
+				{/* Custom text element */}
+				{textContent && (
+					<div 
+						className="absolute"
+						style={{
+							transform: `translate(${textPosition.x}px, ${textPosition.y}px)`,
+							color: textColor,
+							fontSize: `${textSize}px`,
+							zIndex: 10
+						}}
+					>
+						{textContent}
+					</div>
 				)}
 			</div>
 		</div>

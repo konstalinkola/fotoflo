@@ -85,6 +85,23 @@ export default function EditProjectPage() {
 		setTimeout(() => setUploadMessage(""), 5000);
 	};
 
+	const downloadLogo = async (url: string) => {
+		try {
+			const response = await fetch(url);
+			const blob = await response.blob();
+			const downloadUrl = window.URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.href = downloadUrl;
+			link.download = `logo-${name || 'project'}.${url.split('.').pop() || 'png'}`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(downloadUrl);
+		} catch (error) {
+			alert('Failed to download logo');
+		}
+	};
+
 	if (loading) return <div className="p-8">Loading…</div>;
 
 	return (
@@ -192,7 +209,7 @@ export default function EditProjectPage() {
 										placeholder="https://example.com/logo.png"
 									/>
 									{logoUrl && (
-										<div className="mt-2">
+										<div className="mt-2 flex items-center gap-3">
 											<img 
 												src={logoUrl} 
 												alt="Logo preview" 
@@ -201,6 +218,12 @@ export default function EditProjectPage() {
 													e.currentTarget.style.display = 'none';
 												}}
 											/>
+											<button
+												onClick={() => downloadLogo(logoUrl)}
+												className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+											>
+												Download Logo
+											</button>
 										</div>
 									)}
 								</div>
@@ -294,6 +317,12 @@ export default function EditProjectPage() {
 									className="block w-full px-4 py-2 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
 								>
 									Copy Public URL
+								</button>
+								<button
+									onClick={() => window.open(`/customize/${id}`, '_blank', 'width=1200,height=800')}
+									className="block w-full px-4 py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+								>
+									Customize Public Page
 								</button>
 							</div>
 						</div>

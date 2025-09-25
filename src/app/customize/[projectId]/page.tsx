@@ -1,0 +1,307 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { QRCodeCanvas } from "qrcode.react";
+import Image from "next/image";
+
+interface CustomizationSettings {
+	logoSize: number;
+	logoPosition: { x: number; y: number };
+	backgroundColor: string;
+	textContent: string;
+	textPosition: { x: number; y: number };
+	textColor: string;
+	textSize: number;
+}
+
+export default function CustomizePage() {
+	const params = useParams<{ projectId: string }>();
+	const projectId = params.projectId;
+	
+	const [latestUrl, setLatestUrl] = useState<string>("");
+	const [logoUrl, setLogoUrl] = useState<string>("");
+	const [loading, setLoading] = useState(true);
+	const [saving, setSaving] = useState(false);
+	
+	const [settings, setSettings] = useState<CustomizationSettings>({
+		logoSize: 80,
+		logoPosition: { x: 0, y: -100 },
+		backgroundColor: "#f5f5f5",
+		textContent: "",
+		textPosition: { x: 0, y: 150 },
+		textColor: "#333333",
+		textSize: 16
+	});
+
+	useEffect(() => {
+		if (!projectId) return;
+		
+		async function loadProject() {
+			try {
+				const res = await fetch(`/api/projects/${projectId}`);
+				if (!res.ok) return;
+				const data = await res.json();
+				
+				setLogoUrl(data.logo_url || "");
+				setSettings(prev => ({
+					...prev,
+					backgroundColor: data.background_color || "#f5f5f5"
+				}));
+				
+				// Load latest image
+				const latestRes = await fetch(`/api/projects/${projectId}/latest`);
+				if (latestRes.ok) {
+					const latestData = await latestRes.json();
+					setLatestUrl(latestData.url || "");
+				}
+			} catch (error) {
+				console.error("Failed to load project:", error);
+			} finally {
+				setLoading(false);
+			}
+		}
+		
+		loadProject();
+	}, [projectId]);
+
+	const updateSetting = (key: keyof CustomizationSettings, value: any) => {
+		setSettings(prev => ({ ...prev, [key]: value }));
+	};
+
+	const saveSettings = async () => {
+		setSaving(true);
+		try {
+			const res = await fetch(`/api/projects/${projectId}/customization`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(settings),
+			});
+			
+			if (res.ok) {
+				alert("Customization settings saved!");
+			} else {
+				alert("Failed to save settings");
+			}
+		} catch (error) {
+			alert("Error saving settings");
+		} finally {
+			setSaving(false);
+		}
+	};
+
+	if (loading) {
+		return <div className="p-8">Loading...</div>;
+	}
+
+	return (
+		<div className="h-screen flex bg-gray-100">
+			{/* Preview Panel */}
+			<div className="flex-1 flex items-center justify-center p-8">
+				<div className="relative w-full max-w-md">
+					<div 
+						className="min-h-[600px] flex flex-col items-center justify-center p-8 rounded-lg shadow-lg"
+						style={{ backgroundColor: settings.backgroundColor }}
+					>
+						{/* Logo */}
+						{logoUrl && (
+							<div 
+								className="absolute"
+								style={{
+									transform: `translate(${settings.logoPosition.x}px, ${settings.logoPosition.y}px)`,
+									zIndex: 10
+								}}
+							>
+								<Image 
+									src={logoUrl} 
+									alt="Logo" 
+									width={settings.logoSize} 
+									height={settings.logoSize} 
+									className="object-contain"
+								/>
+							</div>
+						)}
+						
+						{/* QR Code */}
+						{latestUrl ? (
+							<QRCodeCanvas value={latestUrl} size={280} includeMargin />
+						) : (
+							<div className="text-gray-700">Waiting for latest photo…</div>
+						)}
+						
+						{/* Text */}
+						{settings.textContent && (
+							<div 
+								className="absolute"
+								style={{
+									transform: `translate(${settings.textPosition.x}px, ${settings.textPosition.y}px)`,
+									color: settings.textColor,
+									fontSize: `${settings.textSize}px`,
+									zIndex: 10
+								}}
+							>
+								{settings.textContent}
+							</div>
+						)}
+					</div>
+				</div>
+			</div>
+
+			{/* Controls Panel */}
+			<div className="w-80 bg-white border-l p-6 overflow-y-auto">
+				<div className="space-y-6">
+					<div className="flex items-center justify-between">
+						<h2 className="text-xl font-semibold">Customize Public Page</h2>
+						<button
+							onClick={saveSettings}
+							disabled={saving}
+							className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+						>
+							{saving ? "Saving..." : "Save"}
+						</button>
+					</div>
+
+					{/* Logo Settings */}
+					<div className="space-y-4">
+						<h3 className="font-medium">Logo Settings</h3>
+						
+						<div>
+							<label className="block text-sm font-medium mb-2">Logo Size</label>
+							<input
+								type="range"
+								min="40"
+								max="200"
+								value={settings.logoSize}
+								onChange={(e) => updateSetting('logoSize', Number(e.target.value))}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.logoSize}px</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Logo Position X</label>
+							<input
+								type="range"
+								min="-200"
+								max="200"
+								value={settings.logoPosition.x}
+								onChange={(e) => updateSetting('logoPosition', { ...settings.logoPosition, x: Number(e.target.value) })}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.logoPosition.x}px</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Logo Position Y</label>
+							<input
+								type="range"
+								min="-300"
+								max="300"
+								value={settings.logoPosition.y}
+								onChange={(e) => updateSetting('logoPosition', { ...settings.logoPosition, y: Number(e.target.value) })}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.logoPosition.y}px</div>
+						</div>
+					</div>
+
+					{/* Background Settings */}
+					<div className="space-y-4">
+						<h3 className="font-medium">Background</h3>
+						
+						<div>
+							<label className="block text-sm font-medium mb-2">Background Color</label>
+							<div className="flex items-center gap-3">
+								<input
+									type="color"
+									value={settings.backgroundColor}
+									onChange={(e) => updateSetting('backgroundColor', e.target.value)}
+									className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+								/>
+								<input
+									type="text"
+									value={settings.backgroundColor}
+									onChange={(e) => updateSetting('backgroundColor', e.target.value)}
+									className="flex-1 border border-gray-300 rounded h-10 px-3"
+								/>
+							</div>
+						</div>
+					</div>
+
+					{/* Text Settings */}
+					<div className="space-y-4">
+						<h3 className="font-medium">Text Element</h3>
+						
+						<div>
+							<label className="block text-sm font-medium mb-2">Text Content</label>
+							<input
+								type="text"
+								value={settings.textContent}
+								onChange={(e) => updateSetting('textContent', e.target.value)}
+								placeholder="Enter text to display"
+								className="w-full border border-gray-300 rounded h-10 px-3"
+							/>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Text Size</label>
+							<input
+								type="range"
+								min="12"
+								max="48"
+								value={settings.textSize}
+								onChange={(e) => updateSetting('textSize', Number(e.target.value))}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.textSize}px</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Text Color</label>
+							<div className="flex items-center gap-3">
+								<input
+									type="color"
+									value={settings.textColor}
+									onChange={(e) => updateSetting('textColor', e.target.value)}
+									className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+								/>
+								<input
+									type="text"
+									value={settings.textColor}
+									onChange={(e) => updateSetting('textColor', e.target.value)}
+									className="flex-1 border border-gray-300 rounded h-10 px-3"
+								/>
+							</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Text Position X</label>
+							<input
+								type="range"
+								min="-200"
+								max="200"
+								value={settings.textPosition.x}
+								onChange={(e) => updateSetting('textPosition', { ...settings.textPosition, x: Number(e.target.value) })}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.textPosition.x}px</div>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">Text Position Y</label>
+							<input
+								type="range"
+								min="-300"
+								max="300"
+								value={settings.textPosition.y}
+								onChange={(e) => updateSetting('textPosition', { ...settings.textPosition, y: Number(e.target.value) })}
+								className="w-full"
+							/>
+							<div className="text-xs text-gray-500">{settings.textPosition.y}px</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
