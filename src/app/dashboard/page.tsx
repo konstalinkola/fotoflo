@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import Link from "next/link";
 import Image from "next/image";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import UserOnboarding from "@/components/UserOnboarding";
 
 export default function DashboardPage() {
@@ -12,14 +12,15 @@ export default function DashboardPage() {
 	const [projects, setProjects] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [showOnboarding, setShowOnboarding] = useState(false);
+	const router = useRouter();
 
 	useEffect(() => {
 		async function loadData() {
-			const supabase = await createSupabaseServerClient();
+			const supabase = createSupabaseBrowserClient();
 			const { data: { user } } = await supabase.auth.getUser();
 
 			if (!user) {
-				redirect("/login?redirect=/dashboard");
+				router.push("/login?redirect=/dashboard");
 				return;
 			}
 
@@ -43,7 +44,7 @@ export default function DashboardPage() {
 		}
 
 		loadData();
-	}, []);
+	}, [router]);
 
 	const handleOnboardingComplete = () => {
 		setShowOnboarding(false);
