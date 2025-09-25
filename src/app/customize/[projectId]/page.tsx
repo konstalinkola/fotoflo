@@ -120,53 +120,62 @@ export default function CustomizePage() {
 
 	return (
 		<div className="h-screen flex bg-gray-100">
-			{/* Preview Panel */}
+			{/* Preview Panel - Matches Public Page Layout */}
 			<div className="flex-1 flex items-center justify-center p-8">
-				<div className="relative w-full max-w-md">
+				<div className="w-full max-w-md">
+					{/* Preview matches the exact public page structure */}
 					<div 
-						className="min-h-[600px] flex flex-col items-center justify-center p-8 rounded-lg shadow-lg"
+						className="min-h-screen flex items-center justify-center p-8"
 						style={{ backgroundColor: settings.backgroundColor }}
 					>
-						{/* Logo */}
-						{logoUrl && (
-							<div 
-								className="absolute"
-								style={{
-									transform: `translate(${settings.logoPosition.x}px, ${settings.logoPosition.y}px)`,
-									zIndex: 10
-								}}
-							>
-								<Image 
-									src={logoUrl} 
-									alt="Logo" 
-									width={settings.logoSize} 
-									height={settings.logoSize} 
-									className="object-contain"
-								/>
-							</div>
-						)}
-						
-						{/* QR Code */}
-						{latestUrl ? (
-							<QRCodeCanvas value={latestUrl} size={280} includeMargin />
-						) : (
-							<div className="text-gray-700">Waiting for latest photo…</div>
-						)}
-						
-						{/* Text */}
-						{settings.textContent && (
-							<div 
-								className="absolute"
-								style={{
-									transform: `translate(${settings.textPosition.x}px, ${settings.textPosition.y}px)`,
-									color: settings.textColor,
-									fontSize: `${settings.textSize}px`,
-									zIndex: 10
-								}}
-							>
-								{settings.textContent}
-							</div>
-						)}
+						<div className="relative flex flex-col items-center gap-6">
+							{/* Logo with custom positioning - matches public page */}
+							{logoUrl && (
+								<div 
+									className="absolute"
+									style={{
+										transform: `translate(${settings.logoPosition.x}px, ${settings.logoPosition.y}px)`,
+										zIndex: 10
+									}}
+								>
+									<Image 
+										src={logoUrl} 
+										alt="Logo" 
+										width={settings.logoSize} 
+										height={settings.logoSize} 
+										className="object-contain" 
+									/>
+								</div>
+							)}
+							
+							{/* QR Code - matches public page */}
+							{latestUrl ? (
+								<div className="relative">
+									<QRCodeCanvas 
+										value={latestUrl} 
+										size={280} 
+										includeMargin 
+									/>
+								</div>
+							) : (
+								<div className="text-gray-700">Waiting for latest photo…</div>
+							)}
+							
+							{/* Custom text element - matches public page */}
+							{settings.textContent && (
+								<div 
+									className="absolute"
+									style={{
+										transform: `translate(${settings.textPosition.x}px, ${settings.textPosition.y}px)`,
+										color: settings.textColor,
+										fontSize: `${settings.textSize}px`,
+										zIndex: 10
+									}}
+								>
+									{settings.textContent}
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -323,6 +332,15 @@ export default function CustomizePage() {
 							/>
 							<div className="text-xs text-gray-500">{settings.textPosition.y}px</div>
 						</div>
+					</div>
+
+					{/* Preview Info */}
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+						<h4 className="font-medium text-blue-900 mb-2">Preview Info</h4>
+						<p className="text-sm text-blue-700">
+							This preview shows how your public page will look on mobile devices (iPad/iPhone). 
+							The layout matches exactly what visitors will see.
+						</p>
 					</div>
 				</div>
 			</div>

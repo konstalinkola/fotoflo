@@ -20,6 +20,7 @@ export default function EditProjectPage() {
 	const [galleryRefresh, setGalleryRefresh] = useState(0);
 	const [qrVisibilityDuration, setQrVisibilityDuration] = useState(0);
 	const [qrExpiresOnClick, setQrExpiresOnClick] = useState(false);
+	const [settingsExpanded, setSettingsExpanded] = useState(false);
 
 	useEffect(() => {
 		if (!id) return;
@@ -167,135 +168,154 @@ export default function EditProjectPage() {
 						/>
 					</div>
 
-					{/* Right Column - Project Settings */}
+					{/* Right Column - Project Settings and Quick Actions */}
 					<div className="space-y-6">
-						<div className="bg-white border rounded-lg p-6">
-							<h2 className="text-xl font-semibold mb-4">Project Settings</h2>
-							<div className="space-y-4">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-									<input 
-										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-										value={name} 
-										onChange={e=>setName(e.target.value)} 
-										placeholder="Enter project name"
-									/>
-								</div>
-								
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-									<div className="flex items-center gap-3">
-										<input 
-											type="color"
-											className="w-12 h-10 border border-gray-300 rounded cursor-pointer" 
-											value={backgroundColor} 
-											onChange={e=>setBackgroundColor(e.target.value)} 
-										/>
-										<input 
-											className="flex-1 border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-											value={backgroundColor} 
-											onChange={e=>setBackgroundColor(e.target.value)} 
-											placeholder="#ffffff"
-										/>
+						{/* Collapsible Project Settings */}
+						<div className="bg-white border rounded-lg">
+							<button
+								onClick={() => setSettingsExpanded(!settingsExpanded)}
+								className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+							>
+								<h2 className="text-xl font-semibold">Project Settings</h2>
+								<svg
+									className={`w-5 h-5 transition-transform ${settingsExpanded ? 'rotate-180' : ''}`}
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+								</svg>
+							</button>
+							
+							{settingsExpanded && (
+								<div className="px-6 pb-6 border-t">
+									<div className="space-y-4 pt-4">
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+											<input 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												value={name} 
+												onChange={e=>setName(e.target.value)} 
+												placeholder="Enter project name"
+											/>
+										</div>
+										
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+											<div className="flex items-center gap-3">
+												<input 
+													type="color"
+													className="w-12 h-10 border border-gray-300 rounded cursor-pointer" 
+													value={backgroundColor} 
+													onChange={e=>setBackgroundColor(e.target.value)} 
+												/>
+												<input 
+													className="flex-1 border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+													value={backgroundColor} 
+													onChange={e=>setBackgroundColor(e.target.value)} 
+													placeholder="#ffffff"
+												/>
+											</div>
+										</div>
+										
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
+											<input 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												value={logoUrl} 
+												onChange={e=>setLogoUrl(e.target.value)} 
+												placeholder="https://example.com/logo.png"
+											/>
+											{logoUrl && (
+												<div className="mt-2 flex items-center gap-3">
+													<img 
+														src={logoUrl} 
+														alt="Logo preview" 
+														className="h-8 w-auto object-contain"
+														onError={(e) => {
+															e.currentTarget.style.display = 'none';
+														}}
+													/>
+													<button
+														onClick={() => downloadLogo(logoUrl)}
+														className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+													>
+														Download Logo
+													</button>
+												</div>
+											)}
+										</div>
+										
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Storage Bucket</label>
+											<input 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												value={storageBucket} 
+												onChange={e=>setStorageBucket(e.target.value)} 
+												placeholder="bucket-name"
+											/>
+										</div>
+										
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">Storage Prefix (Optional)</label>
+											<input 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												value={storagePrefix} 
+												onChange={e=>setStoragePrefix(e.target.value)} 
+												placeholder="folder/subfolder"
+											/>
+										</div>
+										
+										<div>
+											<label className="block text-sm font-medium text-gray-700 mb-2">QR Code Visibility Duration</label>
+											<select 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+												value={qrVisibilityDuration}
+												onChange={e => setQrVisibilityDuration(Number(e.target.value))}
+											>
+												<option value={0}>Forever</option>
+												<option value={1}>1 minute</option>
+												<option value={2}>2 minutes</option>
+												<option value={5}>5 minutes</option>
+												<option value={10}>10 minutes</option>
+												<option value={30}>30 minutes</option>
+												<option value={60}>1 hour</option>
+											</select>
+											<p className="text-xs text-gray-500 mt-1">How long the QR code stays visible after a new image is uploaded</p>
+										</div>
+										
+										<div className="flex items-center gap-3">
+											<input 
+												type="checkbox"
+												id="qrExpiresOnClick"
+												checked={qrExpiresOnClick}
+												onChange={e => setQrExpiresOnClick(e.target.checked)}
+												className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+											/>
+											<label htmlFor="qrExpiresOnClick" className="text-sm font-medium text-gray-700">
+												QR code expires after first view
+											</label>
+										</div>
+										<p className="text-xs text-gray-500">When enabled, the QR code disappears after someone opens the link once</p>
+									</div>
+									
+									<div className="flex items-center gap-3 mt-6 pt-6 border-t">
+										<button 
+											className="flex-1 h-10 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors" 
+											onClick={save} 
+											disabled={saving}
+										>
+											{saving ? "Saving..." : "Save Changes"}
+										</button>
+										<button 
+											className="h-10 px-4 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors" 
+											onClick={handleDelete}
+										>
+											Delete
+										</button>
 									</div>
 								</div>
-								
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
-									<input 
-										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-										value={logoUrl} 
-										onChange={e=>setLogoUrl(e.target.value)} 
-										placeholder="https://example.com/logo.png"
-									/>
-									{logoUrl && (
-										<div className="mt-2 flex items-center gap-3">
-											<img 
-												src={logoUrl} 
-												alt="Logo preview" 
-												className="h-8 w-auto object-contain"
-												onError={(e) => {
-													e.currentTarget.style.display = 'none';
-												}}
-											/>
-											<button
-												onClick={() => downloadLogo(logoUrl)}
-												className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-											>
-												Download Logo
-											</button>
-										</div>
-									)}
-								</div>
-								
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Storage Bucket</label>
-									<input 
-										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-										value={storageBucket} 
-										onChange={e=>setStorageBucket(e.target.value)} 
-										placeholder="bucket-name"
-									/>
-								</div>
-								
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">Storage Prefix (Optional)</label>
-									<input 
-										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-										value={storagePrefix} 
-										onChange={e=>setStoragePrefix(e.target.value)} 
-										placeholder="folder/subfolder"
-									/>
-								</div>
-								
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">QR Code Visibility Duration</label>
-									<select 
-										className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-										value={qrVisibilityDuration}
-										onChange={e => setQrVisibilityDuration(Number(e.target.value))}
-									>
-										<option value={0}>Forever</option>
-										<option value={1}>1 minute</option>
-										<option value={2}>2 minutes</option>
-										<option value={5}>5 minutes</option>
-										<option value={10}>10 minutes</option>
-										<option value={30}>30 minutes</option>
-										<option value={60}>1 hour</option>
-									</select>
-									<p className="text-xs text-gray-500 mt-1">How long the QR code stays visible after a new image is uploaded</p>
-								</div>
-								
-								<div className="flex items-center gap-3">
-									<input 
-										type="checkbox"
-										id="qrExpiresOnClick"
-										checked={qrExpiresOnClick}
-										onChange={e => setQrExpiresOnClick(e.target.checked)}
-										className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-									/>
-									<label htmlFor="qrExpiresOnClick" className="text-sm font-medium text-gray-700">
-										QR code expires after first view
-									</label>
-								</div>
-								<p className="text-xs text-gray-500">When enabled, the QR code disappears after someone opens the link once</p>
-							</div>
-							
-							<div className="flex items-center gap-3 mt-6 pt-6 border-t">
-								<button 
-									className="flex-1 h-10 px-4 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors" 
-									onClick={save} 
-									disabled={saving}
-								>
-									{saving ? "Saving..." : "Save Changes"}
-								</button>
-								<button 
-									className="h-10 px-4 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors" 
-									onClick={handleDelete}
-								>
-									Delete
-								</button>
-							</div>
+							)}
 						</div>
 
 						{/* Quick Actions */}

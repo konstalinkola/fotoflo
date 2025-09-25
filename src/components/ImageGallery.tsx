@@ -22,6 +22,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [activeImagePath, setActiveImagePath] = useState<string | null>(null);
+	const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
 
 	const fetchImages = async () => {
 		setLoading(true);
@@ -46,6 +47,15 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			if (response.ok) {
 				const data = await response.json();
 				setActiveImagePath(data.active_image_path);
+				
+				// Find the URL for the active image
+				if (data.active_image_path) {
+					const activeImage = images.find(img => img.path === data.active_image_path);
+					setActiveImageUrl(activeImage?.url || null);
+				} else {
+					// If no active image, use the latest (first in array)
+					setActiveImageUrl(images.length > 0 ? images[0].url : null);
+				}
 			}
 		} catch (err) {
 			// Ignore errors for active image fetch
@@ -62,6 +72,9 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			
 			if (response.ok) {
 				setActiveImagePath(imagePath);
+				// Find and set the URL for the clicked image
+				const clickedImage = images.find(img => img.path === imagePath);
+				setActiveImageUrl(clickedImage?.url || null);
 				// Show success message
 				alert("Image activated! QR code will now show this image.");
 			} else {
@@ -74,8 +87,13 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 
 	useEffect(() => {
 		fetchImages();
-		fetchActiveImage();
 	}, [projectId]);
+
+	useEffect(() => {
+		if (images.length > 0) {
+			fetchActiveImage();
+		}
+	}, [images]);
 
 	const formatFileSize = (bytes?: number) => {
 		if (!bytes) return "Unknown size";
@@ -122,7 +140,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 
 	return (
 		<div className="bg-white border rounded-lg p-6">
-			<div className="flex items-center justify-between mb-4">
+			<div className="flex items-center justify-between mb-6">
 				<h2 className="text-lg font-medium">Photo Gallery</h2>
 				<div className="flex items-center gap-2">
 					<span className="text-sm text-gray-500">{images.length} photos</span>
@@ -144,50 +162,78 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 					<p className="text-sm">Upload your first photo using the upload section above</p>
 				</div>
 			) : (
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-					{images.map((image, index) => (
-						<div 
-							key={image.path} 
-							className="relative cursor-pointer group"
-							onClick={() => handleImageClick(image.path)}
-						>
-							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-transparent group-hover:border-blue-500 transition-colors">
-								{image.url ? (
+				<div className="space-y-6">
+					{/* Currently Showing Image */}
+					<div className="text-center">
+						<h3 className="text-md font-medium text-gray-700 mb-3">Currently showing</h3>
+						<div className="relative inline-block">
+							<div className="w-64 h-64 bg-gray-100 rounded-lg overflow-hidden border-2 border-blue-500 shadow-lg">
+								{activeImageUrl ? (
 									<Image
-										src={image.url}
-										alt={image.name}
+										src={activeImageUrl}
+										alt="Currently active image"
 										fill
-										className="object-cover group-hover:scale-105 transition-transform duration-200"
-										sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+										className="object-cover"
+										sizes="256px"
 									/>
 								) : (
 									<div className="w-full h-full flex items-center justify-center text-gray-400">
-										<svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
 										</svg>
 									</div>
 								)}
 							</div>
-							{/* Active indicator */}
-							{image.path === activeImagePath && (
-								<div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
-									Active
-								</div>
-							)}
-							{/* Latest badge */}
-							{index === 0 && (
-								<div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded font-medium">
-									Latest
-								</div>
-							)}
-							{/* Click hint */}
-							<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg flex items-center justify-center">
-								<div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white text-black text-xs px-2 py-1 rounded font-medium">
-									Click to activate
-								</div>
-							</div>
 						</div>
-					))}
+					</div>
+
+					{/* Gallery Grid */}
+					<div>
+						<h4 className="text-sm font-medium text-gray-600 mb-3">Click any image below to activate it</h4>
+						<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+							{images.map((image, index) => (
+								<div 
+									key={image.path} 
+									className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+										image.path === activeImagePath 
+											? 'border-green-500 ring-2 ring-green-200' 
+											: 'border-gray-200 hover:border-blue-400'
+									}`}
+									onClick={() => handleImageClick(image.path)}
+								>
+									<div className="aspect-square bg-gray-100">
+										{image.url ? (
+											<Image
+												src={image.url}
+												alt={image.name}
+												fill
+												className="object-cover"
+												sizes="(max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+											/>
+										) : (
+											<div className="w-full h-full flex items-center justify-center text-gray-400">
+												<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+												</svg>
+											</div>
+										)}
+									</div>
+									{/* Active indicator */}
+									{image.path === activeImagePath && (
+										<div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">
+											Active
+										</div>
+									)}
+									{/* Latest badge */}
+									{index === 0 && image.path !== activeImagePath && (
+										<div className="absolute top-1 right-1 bg-yellow-500 text-black text-xs px-1.5 py-0.5 rounded font-medium">
+											Latest
+										</div>
+									)}
+								</div>
+							))}
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
