@@ -35,6 +35,8 @@ export async function GET(
 			sortBy: { column: "created_at", order: "desc" },
 		});
 
+	console.log("User images:", userImages, "Error:", userError);
+
 	// Get images from original prefix (fallback)
 	const originalPrefix = project.storage_prefix || "";
 	const { data: originalImages, error: originalError } = await admin.storage
@@ -43,6 +45,8 @@ export async function GET(
 			limit: 100,
 			sortBy: { column: "created_at", order: "desc" },
 		});
+
+	console.log("Original images:", originalImages, "Error:", originalError);
 
 	// Combine and deduplicate images
 	const allImages = [];

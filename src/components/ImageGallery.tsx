@@ -31,8 +31,10 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 				throw new Error("Failed to fetch images");
 			}
 			const data = await response.json();
+			console.log("Gallery API response:", data); // Debug log
 			setImages(data.images || []);
 		} catch (err) {
+			console.error("Gallery fetch error:", err); // Debug log
 			setError(err instanceof Error ? err.message : "Failed to load images");
 		} finally {
 			setLoading(false);
