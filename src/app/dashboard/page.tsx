@@ -1,12 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
 	const supabase = createSupabaseServerClient();
 	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
+		redirect("/login?redirect=/dashboard");
+	}
 
 	const { data: projects } = await supabase
 		.from("projects")

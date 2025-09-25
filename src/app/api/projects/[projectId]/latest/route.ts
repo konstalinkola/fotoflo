@@ -4,9 +4,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { projectId: string } }
+	{ params }: { params: Promise<{ projectId: string }> }
 ) {
-	const { projectId } = params;
+	const { projectId } = await params;
 
 	const supabase = createSupabaseServerClient();
 	const { data: project, error } = await supabase
