@@ -31,10 +31,8 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 				throw new Error("Failed to fetch images");
 			}
 			const data = await response.json();
-			console.log("Gallery API response:", data); // Debug log
 			setImages(data.images || []);
 		} catch (err) {
-			console.error("Gallery fetch error:", err); // Debug log
 			setError(err instanceof Error ? err.message : "Failed to load images");
 		} finally {
 			setLoading(false);
@@ -114,7 +112,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			) : (
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 					{images.map((image, index) => (
-						<div key={image.path} className="relative group">
+						<div key={image.path} className="relative group cursor-pointer">
 							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
 								{image.url ? (
 									<Image
@@ -132,6 +130,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 									</div>
 								)}
 							</div>
+							{/* Hover overlay - only shows on hover */}
 							<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg" />
 							<div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
 								<div className="text-white text-xs">
