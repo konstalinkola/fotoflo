@@ -112,14 +112,14 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			) : (
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
 					{images.map((image, index) => (
-						<div key={image.path} className="relative group cursor-pointer">
+						<div key={image.path} className="relative">
 							<div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
 								{image.url ? (
 									<Image
 										src={image.url}
 										alt={image.name}
 										fill
-										className="object-cover group-hover:scale-105 transition-transform duration-200"
+										className="object-cover"
 										sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
 									/>
 								) : (
@@ -130,19 +130,12 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 									</div>
 								)}
 							</div>
-							{/* Hover overlay - only shows on hover */}
-							<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-lg" />
-							<div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-								<div className="text-white text-xs">
-									<div className="font-medium truncate">{image.name}</div>
-									<div className="text-gray-300">
-										{formatDate(image.created_at)} • {formatFileSize(image.size)}
-									</div>
-									{index === 0 && (
-										<div className="text-yellow-300 text-xs font-medium">Latest</div>
-									)}
+							{/* Simple latest badge */}
+							{index === 0 && (
+								<div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded font-medium">
+									Latest
 								</div>
-							</div>
+							)}
 						</div>
 					))}
 				</div>
