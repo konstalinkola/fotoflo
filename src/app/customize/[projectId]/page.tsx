@@ -39,15 +39,34 @@ export default function CustomizePage() {
 		
 		async function loadProject() {
 			try {
+				console.log("Loading project:", projectId);
 				const res = await fetch(`/api/projects/${projectId}`);
-				if (!res.ok) return;
+				if (!res.ok) {
+					console.error("Failed to load project:", res.status);
+					return;
+				}
 				const data = await res.json();
+				console.log("Project data:", data);
 				
 				setLogoUrl(data.logo_url || "");
 				setSettings(prev => ({
 					...prev,
 					backgroundColor: data.background_color || "#f5f5f5"
 				}));
+				
+				// Load customization settings
+				try {
+					const customRes = await fetch(`/api/projects/${projectId}/customization`);
+					if (customRes.ok) {
+						const customData = await customRes.json();
+						console.log("Customization data:", customData);
+						if (customData.settings) {
+							setSettings(prev => ({ ...prev, ...customData.settings }));
+						}
+					}
+				} catch (error) {
+					console.log("No customization settings found:", error);
+				}
 				
 				// Load latest image
 				const latestRes = await fetch(`/api/projects/${projectId}/latest`);
@@ -72,18 +91,23 @@ export default function CustomizePage() {
 	const saveSettings = async () => {
 		setSaving(true);
 		try {
+			console.log("Saving settings:", settings);
 			const res = await fetch(`/api/projects/${projectId}/customization`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(settings),
 			});
 			
+			const result = await res.json();
+			console.log("Save response:", result, "Status:", res.status);
+			
 			if (res.ok) {
 				alert("Customization settings saved!");
 			} else {
-				alert("Failed to save settings");
+				alert(`Failed to save settings: ${result.error || 'Unknown error'}`);
 			}
 		} catch (error) {
+			console.error("Save error:", error);
 			alert("Error saving settings");
 		} finally {
 			setSaving(false);
