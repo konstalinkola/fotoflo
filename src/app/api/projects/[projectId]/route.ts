@@ -6,7 +6,7 @@ export async function GET(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	const { projectId } = await params;
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { data, error } = await supabase
 		.from("projects")
 		.select("id, name, logo_url, background_color, storage_bucket, storage_prefix")
@@ -21,7 +21,7 @@ export async function PUT(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	const { projectId } = await params;
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const body = await request.json();
 	const { name, logo_url, background_color, storage_bucket, storage_prefix } = body;
 	const { data, error } = await supabase
@@ -39,7 +39,7 @@ export async function DELETE(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	const { projectId } = await params;
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { error } = await supabase
 		.from("projects")
 		.delete()

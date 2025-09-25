@@ -8,7 +8,7 @@ export async function GET(
 ) {
 	const { projectId } = await params;
 
-	const supabase = createSupabaseServerClient();
+	const supabase = await createSupabaseServerClient();
 	const { data: project, error } = await supabase
 		.from("projects")
 		.select("storage_bucket, storage_prefix, logo_url, background_color")
