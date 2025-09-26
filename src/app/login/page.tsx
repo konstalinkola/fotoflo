@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import Image from "next/image";
 
 export default function LoginPage() {
 	const supabase = createSupabaseBrowserClient();

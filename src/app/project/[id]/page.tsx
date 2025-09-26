@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import FileUpload from "@/components/FileUpload";
 import ImageGallery from "@/components/ImageGallery";
 import Navbar from "@/components/Navbar";
+import Image from "next/image";
 
 export default function EditProjectPage() {
 	const params = useParams<{ id: string }>();

@@ -45,7 +45,15 @@ export async function GET(
 		});
 
 	// Combine and deduplicate images
-	const allImages: any[] = [];
+	interface ImageWithSource {
+		path: string;
+		source: string;
+		name: string;
+		created_at: string;
+		url?: string | null;
+		[key: string]: unknown;
+	}
+	const allImages: ImageWithSource[] = [];
 	
 	if (userImages && !userError) {
 		allImages.push(...userImages.map(img => ({
