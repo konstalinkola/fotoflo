@@ -51,6 +51,11 @@ export async function GET(
 		name: string;
 		created_at: string;
 		url?: string | null;
+		size?: number;
+		metadata?: {
+			size?: number;
+			[key: string]: unknown;
+		};
 		[key: string]: unknown;
 	}
 	const allImages: ImageWithSource[] = [];
