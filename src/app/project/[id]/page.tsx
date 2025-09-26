@@ -235,9 +235,11 @@ export default function EditProjectPage() {
 											/>
 											{logoUrl && (
 												<div className="mt-2 flex items-center gap-3">
-													<img 
+													<Image 
 														src={logoUrl} 
 														alt="Logo preview" 
+														width={32}
+														height={32}
 														className="h-8 w-auto object-contain"
 														onError={(e) => {
 															e.currentTarget.style.display = 'none';

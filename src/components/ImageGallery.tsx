@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 
 interface ImageData {
@@ -17,14 +17,14 @@ interface ImageGalleryProps {
 	// onRefresh?: () => void;
 }
 
-export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps) {
+export default function ImageGallery({ projectId }: ImageGalleryProps) {
 	const [images, setImages] = useState<ImageData[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [activeImagePath, setActiveImagePath] = useState<string | null>(null);
 	const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
 
-	const fetchImages = async () => {
+	const fetchImages = useCallback(async () => {
 		setLoading(true);
 		setError(null);
 		try {
@@ -34,14 +34,14 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			}
 			const data = await response.json();
 			setImages(data.images || []);
-		} catch {
+		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to load images");
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [projectId]);
 
-	const fetchActiveImage = async () => {
+	const fetchActiveImage = useCallback(async () => {
 		try {
 			const response = await fetch(`/api/projects/${projectId}/active-image`);
 			if (response.ok) {
@@ -60,7 +60,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 		} catch {
 			// Ignore errors for active image fetch
 		}
-	};
+	}, [projectId, images]);
 
 	const handleImageClick = async (imagePath: string) => {
 		try {
@@ -87,30 +87,15 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 
 	useEffect(() => {
 		fetchImages();
-	}, [projectId]);
+	}, [fetchImages]);
 
 	useEffect(() => {
 		if (images.length > 0) {
 			fetchActiveImage();
 		}
-	}, [images]);
+	}, [fetchActiveImage, images.length]);
 
-	const formatFileSize = (bytes?: number) => {
-		if (!bytes) return "Unknown size";
-		const sizes = ["Bytes", "KB", "MB", "GB"];
-		const i = Math.floor(Math.log(bytes) / Math.log(1024));
-		return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + " " + sizes[i];
-	};
-
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleDateString("en-US", {
-			year: "numeric",
-			month: "short",
-			day: "numeric",
-			hour: "2-digit",
-			minute: "2-digit"
-		});
-	};
+	// Removed unused formatFileSize and formatDate functions
 
 	if (loading) {
 		return (

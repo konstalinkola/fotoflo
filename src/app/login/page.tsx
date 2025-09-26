@@ -28,9 +28,11 @@ export default function LoginPage() {
 			{/* Left side - Logo and tagline group */}
 			<div className="flex-1 flex items-center justify-center bg-gray-50">
 				<div className="text-center -mt-16">
-					<img
+					<Image
 						src="/logo.png"
 						alt="Kuvapalvelin"
+						width={288}
+						height={288}
 						className="w-72 h-72 mx-auto object-contain"
 					/>
 					<p className="text-xl font-bold text-gray-800 leading-none m-0 p-0">Instant photo sharing for event photographers</p>
