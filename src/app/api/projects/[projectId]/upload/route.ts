@@ -60,7 +60,16 @@ export async function POST(
 		});
 
 	if (uploadError) {
-		return NextResponse.json({ error: uploadError.message }, { status: 500 });
+		// Provide more helpful error messages
+		let errorMessage = uploadError.message;
+		if (uploadError.message.includes("Bucket not found")) {
+			errorMessage = "Storage bucket not found. Please contact support to set up your storage.";
+		} else if (uploadError.message.includes("quota")) {
+			errorMessage = "Storage quota exceeded. Please delete some old photos or upgrade your plan.";
+		} else if (uploadError.message.includes("size")) {
+			errorMessage = "File too large. Maximum size is 10MB.";
+		}
+		return NextResponse.json({ error: errorMessage }, { status: 500 });
 	}
 
 	return NextResponse.json({ 

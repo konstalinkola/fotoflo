@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 export async function POST(request: Request) {
 	const supabase = await createSupabaseServerClient();
@@ -7,6 +8,28 @@ export async function POST(request: Request) {
 	
 	if (!user) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
+
+	// Ensure the storage bucket exists
+	const bucketName = "photos";
+	const admin = createSupabaseServiceClient();
+	
+	// Check if bucket exists, create if it doesn't
+	const { data: buckets } = await admin.storage.listBuckets();
+	const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+	
+	if (!bucketExists) {
+		const { error: bucketError } = await admin.storage.createBucket(bucketName, {
+			public: false, // Private bucket for security
+			fileSizeLimit: 10485760, // 10MB limit
+			allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+		});
+		
+		if (bucketError) {
+			return NextResponse.json({ 
+				error: `Failed to create storage bucket: ${bucketError.message}` 
+			}, { status: 500 });
+		}
 	}
 
 	// Create a blank project with default values
