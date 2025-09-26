@@ -24,21 +24,21 @@ export default function LoginPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-white flex">
+		<div className="min-h-screen bg-white flex items-center">
 			{/* Left side - Logo and tagline group */}
-			<div className="flex-1 flex items-center justify-center bg-gray-50">
+			<div className="flex-1 flex items-center justify-center bg-gray-50 h-screen">
 				<div className="text-center">
 					<img
 						src="/logo.png"
 						alt="Kuvapalvelin"
-						className="w-72 h-72 mx-auto object-contain mb-4"
+						className="w-72 h-72 mx-auto object-contain mb-2"
 					/>
 					<p className="text-xl font-bold text-gray-800">Instant photo sharing for event photographers</p>
 				</div>
 			</div>
 
 			{/* Right side - Sign in form */}
-			<div className="flex-1 flex items-center justify-center p-8">
+			<div className="flex-1 flex items-center justify-center p-8 h-screen">
 				<div className="w-full max-w-sm">
 					<div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
 						<div className="text-center mb-8">
