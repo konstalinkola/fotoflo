@@ -22,6 +22,7 @@ export default function DashboardPage() {
 	const [projects, setProjects] = useState<Project[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showOnboarding, setShowOnboarding] = useState(false);
+	const [creatingProject, setCreatingProject] = useState(false);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -61,6 +62,29 @@ export default function DashboardPage() {
 		localStorage.setItem("hasSeenOnboarding", "true");
 	};
 
+	const createBlankProject = async () => {
+		setCreatingProject(true);
+		try {
+			const response = await fetch("/api/projects/create-blank", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || "Failed to create project");
+			}
+
+			// Redirect to the new project page
+			router.push(`/project/${result.projectId}`);
+		} catch (error) {
+			alert(error instanceof Error ? error.message : "Failed to create project");
+		} finally {
+			setCreatingProject(false);
+		}
+	};
+
 	if (loading) return (
 		<div className="min-h-screen bg-white">
 			<Navbar />
@@ -83,12 +107,13 @@ export default function DashboardPage() {
 			<div className="p-8 space-y-6">
 				<div className="flex items-center justify-between">
 					<h1 className="text-2xl font-semibold text-black">Dashboard</h1>
-					<Link 
-						href="/project/new"
-						className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+					<button 
+						onClick={createBlankProject}
+						disabled={creatingProject}
+						className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
 					>
-						New project
-					</Link>
+						{creatingProject ? "Creating..." : "New project"}
+					</button>
 				</div>
 				<p className="text-sm text-gray-600">Signed in as: {user?.email}</p>
 				<div className="divide-y border rounded-lg bg-white">
@@ -142,12 +167,13 @@ export default function DashboardPage() {
 							</div>
 							<p className="text-lg font-medium mb-2">No projects yet</p>
 							<p className="text-sm mb-4">Create your first project to start sharing photos</p>
-							<Link 
-								href="/project/new"
-								className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+							<button 
+								onClick={createBlankProject}
+								disabled={creatingProject}
+								className="inline-flex items-center px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
 							>
-								Create Project
-							</Link>
+								{creatingProject ? "Creating..." : "Create Project"}
+							</button>
 						</div>
 					)}
 				</div>
