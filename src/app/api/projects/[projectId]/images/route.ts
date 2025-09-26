@@ -26,20 +26,11 @@ export async function GET(
 	const bucket = project.storage_bucket as string;
 	const admin = createSupabaseServiceClient();
 
-	// Get images from user/project folder
-	const userProjectPrefix = `${user.id}/${projectId}`;
-	const { data: userImages, error: userError } = await admin.storage
+	// Get images from project folder (user bucket is already isolated)
+	const projectPrefix = project.storage_prefix || projectId;
+	const { data: projectImages, error: projectError } = await admin.storage
 		.from(bucket)
-		.list(userProjectPrefix, {
-			limit: 100,
-			sortBy: { column: "created_at", order: "desc" },
-		});
-
-	// Get images from original prefix (fallback)
-	const originalPrefix = project.storage_prefix || "";
-	const { data: originalImages, error: originalError } = await admin.storage
-		.from(bucket)
-		.list(originalPrefix, {
+		.list(projectPrefix, {
 			limit: 100,
 			sortBy: { column: "created_at", order: "desc" },
 		});
@@ -60,32 +51,21 @@ export async function GET(
 	}
 	const allImages: ImageWithSource[] = [];
 	
-	if (userImages && !userError) {
-		allImages.push(...userImages.map(img => ({
+	if (projectImages && !projectError) {
+		allImages.push(...projectImages.map(img => ({
 			...img,
-			path: `${userProjectPrefix}/${img.name}`,
-			source: 'user'
-		})));
-	}
-	
-	if (originalImages && !originalError) {
-		allImages.push(...originalImages.map(img => ({
-			...img,
-			path: originalPrefix ? `${originalPrefix.replace(/\/+$/, "")}/${img.name}` : img.name,
-			source: 'original'
+			path: `${projectPrefix}/${img.name}`,
+			source: 'project'
 		})));
 	}
 
-	// Remove duplicates and sort by created_at
-	const uniqueImages = allImages
-		.filter((img, index, self) => 
-			index === self.findIndex(i => i.name === img.name)
-		)
+	// Sort by created_at
+	const sortedImages = allImages
 		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
 	// Generate signed URLs for each image
 	const imagesWithUrls = await Promise.all(
-		uniqueImages.map(async (img) => {
+		sortedImages.map(async (img) => {
 			const { data: signed } = await admin.storage
 				.from(bucket)
 				.createSignedUrl(img.path, 3600);

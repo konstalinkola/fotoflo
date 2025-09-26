@@ -27,34 +27,18 @@ export async function GET(
 	
 	// If no active image, find the latest image
 	if (!targetImagePath) {
-		// First try the new user/project structure if user is authenticated
-		if (user) {
-			const userProjectPrefix = `${user.id}/${projectId}`;
-			const { data: userList } = await admin.storage.from(bucket).list(userProjectPrefix, {
-				limit: 100,
-				sortBy: { column: "created_at", order: "desc" },
-			});
-			
-			if (userList && userList.length > 0) {
-				const newest = userList[0];
-				targetImagePath = `${userProjectPrefix}/${newest.name}`;
-			}
-		}
+		// Use project folder (user bucket is already isolated)
+		const projectPrefix = project.storage_prefix || projectId;
+		const { data: list, error: listError } = await admin.storage.from(bucket).list(projectPrefix, {
+			limit: 100,
+			sortBy: { column: "created_at", order: "desc" },
+		});
 		
-		// Fallback to original prefix structure
-		if (!targetImagePath) {
-			const searchPrefix = project.storage_prefix || "";
-			const { data: list, error: listError } = await admin.storage.from(bucket).list(searchPrefix, {
-				limit: 100,
-				sortBy: { column: "created_at", order: "desc" },
-			});
-			
-			if (listError) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, error: listError.message });
-			if (!list || list.length === 0) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, reason: "empty", bucket, prefix: searchPrefix });
-			
-			const newest = list[0];
-			targetImagePath = searchPrefix ? `${searchPrefix.replace(/\/+$/, "")}/${newest.name}` : newest.name;
-		}
+		if (listError) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, error: listError.message });
+		if (!list || list.length === 0) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, reason: "empty", bucket, prefix: projectPrefix });
+		
+		const newest = list[0];
+		targetImagePath = `${projectPrefix}/${newest.name}`;
 	}
 	
 	// Generate signed URL for the target image

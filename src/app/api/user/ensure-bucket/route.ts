@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	// Ensure the user has their own bucket
+	// Create bucket name based on user ID (sanitized)
 	const bucketName = `user-${user.id.replace(/-/g, '')}`;
 	const admin = createSupabaseServiceClient();
 	
@@ -32,40 +32,9 @@ export async function POST(request: Request) {
 		}
 	}
 
-	// Create a blank project with default values
-	const { data, error } = await supabase
-		.from("projects")
-		.insert({
-			owner: user.id,
-			name: "Untitled Project",
-			background_color: "#ffffff",
-			logo_url: "",
-			storage_bucket: bucketName, // User's personal bucket
-			storage_prefix: "", // Will be set to project ID after creation
-			qr_visibility_duration: 0,
-			qr_expires_on_click: false,
-			customization_settings: null
-		})
-		.select("id")
-		.single();
-
-	if (error) {
-		return NextResponse.json({ error: error.message }, { status: 500 });
-	}
-
-	// Update the project with the storage prefix set to the project ID
-	const { error: updateError } = await supabase
-		.from("projects")
-		.update({ storage_prefix: data.id })
-		.eq("id", data.id);
-
-	if (updateError) {
-		return NextResponse.json({ error: updateError.message }, { status: 500 });
-	}
-
 	return NextResponse.json({ 
 		success: true, 
-		projectId: data.id,
-		message: "Blank project created successfully"
+		bucketName: bucketName,
+		message: "User bucket ensured"
 	});
 }

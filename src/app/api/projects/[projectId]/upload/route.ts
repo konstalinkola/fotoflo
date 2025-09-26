@@ -44,11 +44,11 @@ export async function POST(
 		return NextResponse.json({ error: "File too large. Maximum size is 10MB." }, { status: 400 });
 	}
 
-	// Create secure file path: user_id/project_id/filename
+	// Create file path: project_id/filename (user bucket is already isolated)
 	const timestamp = Date.now();
 	const fileExtension = file.name.split('.').pop();
 	const fileName = `${timestamp}.${fileExtension}`;
-	const securePath = `${user.id}/${projectId}/${fileName}`;
+	const securePath = `${projectId}/${fileName}`;
 
 	// Upload to Supabase Storage using service client
 	const admin = createSupabaseServiceClient();
