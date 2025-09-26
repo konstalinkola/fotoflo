@@ -23,6 +23,9 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 	const [error, setError] = useState<string | null>(null);
 	const [activeImagePath, setActiveImagePath] = useState<string | null>(null);
 	const [activeImageUrl, setActiveImageUrl] = useState<string | null>(null);
+	const [selectionMode, setSelectionMode] = useState(false);
+	const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
+	const [deleting, setDeleting] = useState(false);
 
 	const fetchImages = useCallback(async () => {
 		setLoading(true);
@@ -81,6 +84,59 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 		}
 	};
 
+	const toggleSelection = (imagePath: string) => {
+		const newSelected = new Set(selectedImages);
+		if (newSelected.has(imagePath)) {
+			newSelected.delete(imagePath);
+		} else {
+			newSelected.add(imagePath);
+		}
+		setSelectedImages(newSelected);
+	};
+
+	const selectAll = () => {
+		setSelectedImages(new Set(images.map(img => img.path)));
+	};
+
+	const selectNone = () => {
+		setSelectedImages(new Set());
+	};
+
+	const deleteSelected = async () => {
+		if (selectedImages.size === 0) return;
+		
+		setDeleting(true);
+		try {
+			const response = await fetch(`/api/projects/${projectId}/images/delete`, {
+				method: "DELETE",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ filePaths: Array.from(selectedImages) }),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				throw new Error(result.error || "Delete failed");
+			}
+
+			// Refresh the gallery
+			await fetchImages();
+			// Clear selection
+			setSelectedImages(new Set());
+			setSelectionMode(false);
+			
+		} catch (error) {
+			alert(error instanceof Error ? error.message : "Failed to delete images");
+		} finally {
+			setDeleting(false);
+		}
+	};
+
+	const exitSelectionMode = () => {
+		setSelectionMode(false);
+		setSelectedImages(new Set());
+	};
+
 	useEffect(() => {
 		fetchImages();
 	}, [fetchImages]);
@@ -125,12 +181,53 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 				<h2 className="text-lg font-medium">Photo Gallery</h2>
 				<div className="flex items-center gap-2">
 					<span className="text-sm text-gray-500">{images.length} photos</span>
-					<button 
-						onClick={fetchImages}
-						className="text-sm text-blue-600 hover:text-blue-700"
-					>
-						Refresh
-					</button>
+					{!selectionMode ? (
+						<>
+							<button 
+								onClick={fetchImages}
+								className="text-sm text-blue-600 hover:text-blue-700"
+							>
+								Refresh
+							</button>
+							<button 
+								onClick={() => setSelectionMode(true)}
+								className="text-sm text-red-600 hover:text-red-700"
+							>
+								Select
+							</button>
+						</>
+					) : (
+						<>
+							<span className="text-sm text-gray-500">
+								{selectedImages.size} selected
+							</span>
+							<button 
+								onClick={selectAll}
+								className="text-sm text-blue-600 hover:text-blue-700"
+							>
+								Select All
+							</button>
+							<button 
+								onClick={selectNone}
+								className="text-sm text-gray-600 hover:text-gray-700"
+							>
+								Select None
+							</button>
+							<button 
+								onClick={deleteSelected}
+								disabled={selectedImages.size === 0 || deleting}
+								className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+							>
+								{deleting ? "Deleting..." : `Delete (${selectedImages.size})`}
+							</button>
+							<button 
+								onClick={exitSelectionMode}
+								className="text-sm text-gray-600 hover:text-gray-700"
+							>
+								Cancel
+							</button>
+						</>
+					)}
 				</div>
 			</div>
 
@@ -170,17 +267,26 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 
 					{/* Gallery Grid */}
 					<div>
-						<h4 className="text-sm font-medium text-gray-600 mb-3">Click any image below to activate it</h4>
+						<h4 className="text-sm font-medium text-gray-600 mb-3">
+							{selectionMode 
+								? "Select images to delete" 
+								: "Click any image below to activate it"
+							}
+						</h4>
 						<div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
 							{images.map((image, index) => (
 								<div 
 									key={image.path} 
 									className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-										image.path === activeImagePath 
-											? 'border-green-500 ring-2 ring-green-200' 
-											: 'border-gray-200 hover:border-blue-400'
+										selectionMode 
+											? selectedImages.has(image.path)
+												? 'border-red-500 ring-2 ring-red-200'
+												: 'border-gray-200 hover:border-red-400'
+											: image.path === activeImagePath 
+												? 'border-green-500 ring-2 ring-green-200' 
+												: 'border-gray-200 hover:border-blue-400'
 									}`}
-									onClick={() => handleImageClick(image.path)}
+									onClick={() => selectionMode ? toggleSelection(image.path) : handleImageClick(image.path)}
 								>
 									<div className="aspect-square bg-gray-100">
 										{image.url ? (
@@ -199,14 +305,27 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 											</div>
 										)}
 									</div>
+									
+									{/* Selection checkbox */}
+									{selectionMode && (
+										<div className="absolute top-1 left-1">
+											<input
+												type="checkbox"
+												checked={selectedImages.has(image.path)}
+												onChange={() => toggleSelection(image.path)}
+												className="w-4 h-4 text-red-600 bg-white border-gray-300 rounded focus:ring-red-500"
+											/>
+										</div>
+									)}
+									
 									{/* Active indicator */}
-									{image.path === activeImagePath && (
+									{!selectionMode && image.path === activeImagePath && (
 										<div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded font-medium">
 											Active
 										</div>
 									)}
 									{/* Latest badge */}
-									{index === 0 && image.path !== activeImagePath && (
+									{!selectionMode && index === 0 && image.path !== activeImagePath && (
 										<div className="absolute top-1 right-1 bg-yellow-500 text-black text-xs px-1.5 py-0.5 rounded font-medium">
 											Latest
 										</div>
