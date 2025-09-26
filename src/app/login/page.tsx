@@ -33,7 +33,7 @@ export default function LoginPage() {
 						alt="Kuvapalvelin"
 						className="w-72 h-72 mx-auto object-contain"
 					/>
-					<p className="text-xl font-bold text-gray-800">Instant photo sharing for event photographers</p>
+					<p className="text-xl font-bold text-gray-800 leading-none m-0 p-0">Instant photo sharing for event photographers</p>
 				</div>
 			</div>
 
