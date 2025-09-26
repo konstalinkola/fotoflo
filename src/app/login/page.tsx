@@ -29,8 +29,14 @@ export default function LoginPage() {
 			{/* Left side - Logo */}
 			<div className="flex-1 flex items-center justify-center bg-gray-50">
 				<div className="text-center">
-					<div className="w-24 h-24 bg-black rounded-lg flex items-center justify-center mx-auto mb-6">
-						<span className="text-white text-3xl font-bold">K</span>
+					<div className="w-24 h-24 flex items-center justify-center mx-auto mb-6">
+						<Image
+							src="/logo.png"
+							alt="Kuvapalvelin"
+							width={96}
+							height={96}
+							className="w-24 h-24 object-contain"
+						/>
 					</div>
 					<h1 className="text-3xl font-bold text-gray-900 mb-2">Kuvapalvelin</h1>
 					<p className="text-gray-600">Share your latest photos instantly</p>

@@ -46,9 +46,13 @@ export default function Navbar() {
 				<div className="flex items-center space-x-8">
 					{/* Logo */}
 					<Link href="/dashboard" className="flex items-center">
-						<div className="w-8 h-8 bg-black rounded flex items-center justify-center">
-							<span className="text-white text-sm font-bold">K</span>
-						</div>
+						<Image
+							src="/logo.png"
+							alt="Kuvapalvelin"
+							width={32}
+							height={32}
+							className="h-8 w-auto"
+						/>
 					</Link>
 					
 					{/* Projects Button */}
