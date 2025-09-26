@@ -224,7 +224,7 @@ export default function EditProjectPage() {
 										
 										
 										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">QR Code Visibility Duration</label>
+											<label className="block text-sm font-medium text-gray-900 mb-2">QR Code Visibility Duration</label>
 											<select 
 												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 												value={qrVisibilityDuration}
@@ -249,7 +249,7 @@ export default function EditProjectPage() {
 												onChange={e => setQrExpiresOnClick(e.target.checked)}
 												className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
 											/>
-											<label htmlFor="qrExpiresOnClick" className="text-sm font-medium text-gray-700">
+											<label htmlFor="qrExpiresOnClick" className="text-sm font-medium text-gray-900">
 												QR code expires after first view
 											</label>
 										</div>
@@ -277,7 +277,7 @@ export default function EditProjectPage() {
 
 						{/* Quick Actions */}
 						<div className="bg-white border rounded-lg p-6">
-							<h3 className="text-lg font-medium mb-4">Quick Actions</h3>
+							<h3 className="text-lg font-medium mb-4 text-black">Quick Actions</h3>
 							<div className="space-y-3">
 								<a
 									href={`/public/${id}`}
