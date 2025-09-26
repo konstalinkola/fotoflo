@@ -24,10 +24,10 @@ export default function LoginPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-white flex items-center">
+		<div className="min-h-screen bg-white flex">
 			{/* Left side - Logo and tagline group */}
-			<div className="flex-1 flex items-center justify-center bg-gray-50 h-screen">
-				<div className="text-center">
+			<div className="flex-1 flex items-center justify-center bg-gray-50">
+				<div className="text-center -mt-16">
 					<img
 						src="/logo.png"
 						alt="Kuvapalvelin"
@@ -38,7 +38,7 @@ export default function LoginPage() {
 			</div>
 
 			{/* Right side - Sign in form */}
-			<div className="flex-1 flex items-center justify-center p-8 h-screen">
+			<div className="flex-1 flex items-center justify-center p-8">
 				<div className="w-full max-w-sm">
 					<div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
 						<div className="text-center mb-8">
