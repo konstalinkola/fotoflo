@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Beta access password - in production, use environment variable
-const BETA_PASSWORD = "kuvapalvelin2024";
+const BETA_PASSWORD = "taika";
 
 export async function POST(request: NextRequest) {
 	try {

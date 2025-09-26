@@ -11,6 +11,13 @@ export function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 	
+	// Allow access to static assets and Next.js internals
+	if (request.nextUrl.pathname.startsWith("/_next") ||
+		request.nextUrl.pathname.startsWith("/favicon") ||
+		request.nextUrl.pathname.includes(".")) {
+		return NextResponse.next();
+	}
+	
 	// If no beta access, redirect to beta access page
 	if (!betaAccess) {
 		return NextResponse.redirect(new URL("/beta-access", request.url));
@@ -21,6 +28,13 @@ export function middleware(request: NextRequest) {
 
 export const config = {
 	matcher: [
-		"/((?!_next/static|_next/image|favicon.ico).*)",
+		/*
+		 * Match all request paths except for the ones starting with:
+		 * - _next/static (static files)
+		 * - _next/image (image optimization files)
+		 * - favicon.ico (favicon file)
+		 * - public folder files
+		 */
+		"/((?!_next/static|_next/image|favicon.ico|.*\\.).*)",
 	],
 };
