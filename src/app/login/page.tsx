@@ -32,11 +32,10 @@ export default function LoginPage() {
 						<img
 							src="/logo.png"
 							alt="Kuvapalvelin"
-							className="w-24 h-24 mx-auto object-contain"
+							className="w-72 h-72 mx-auto object-contain"
 						/>
 					</div>
-					<h1 className="text-3xl font-bold text-gray-900 mb-2">Kuvapalvelin</h1>
-					<p className="text-gray-600">Share your latest photos instantly</p>
+					<p className="text-gray-600">Instant photo sharing for event photographers</p>
 				</div>
 			</div>
 
