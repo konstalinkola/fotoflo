@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import Image from "next/image";
 
 export default function LoginPage() {
 	const supabase = createSupabaseBrowserClient();
@@ -29,13 +28,11 @@ export default function LoginPage() {
 			{/* Left side - Logo */}
 			<div className="flex-1 flex items-center justify-center bg-gray-50">
 				<div className="text-center">
-					<div className="w-24 h-24 flex items-center justify-center mx-auto mb-6">
-						<Image
+					<div className="mb-6">
+						<img
 							src="/logo.png"
 							alt="Kuvapalvelin"
-							width={96}
-							height={96}
-							className="w-24 h-24 object-contain"
+							className="w-24 h-24 mx-auto object-contain"
 						/>
 					</div>
 					<h1 className="text-3xl font-bold text-gray-900 mb-2">Kuvapalvelin</h1>
