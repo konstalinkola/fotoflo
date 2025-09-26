@@ -14,7 +14,7 @@ interface ImageData {
 
 interface ImageGalleryProps {
 	projectId: string;
-	onRefresh?: () => void;
+	// onRefresh?: () => void;
 }
 
 export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps) {
@@ -34,7 +34,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			}
 			const data = await response.json();
 			setImages(data.images || []);
-		} catch (err) {
+		} catch {
 			setError(err instanceof Error ? err.message : "Failed to load images");
 		} finally {
 			setLoading(false);
@@ -57,7 +57,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 					setActiveImageUrl(images.length > 0 ? images[0].url : null);
 				}
 			}
-		} catch (err) {
+		} catch {
 			// Ignore errors for active image fetch
 		}
 	};
@@ -80,7 +80,7 @@ export default function ImageGallery({ projectId, onRefresh }: ImageGalleryProps
 			} else {
 				alert("Failed to activate image");
 			}
-		} catch (error) {
+		} catch {
 			alert("Error activating image");
 		}
 	};

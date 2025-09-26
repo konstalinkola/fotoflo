@@ -18,7 +18,7 @@ interface Project {
 }
 
 export default function DashboardPage() {
-	const [user, setUser] = useState<any>(null);
+	const [user, setUser] = useState<{id: string; email?: string} | null>(null);
 	const [projects, setProjects] = useState<Project[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showOnboarding, setShowOnboarding] = useState(false);

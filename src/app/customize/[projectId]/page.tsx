@@ -84,7 +84,7 @@ export default function CustomizePage() {
 		loadProject();
 	}, [projectId]);
 
-	const updateSetting = (key: keyof CustomizationSettings, value: any) => {
+	const updateSetting = (key: keyof CustomizationSettings, value: unknown) => {
 		setSettings(prev => ({ ...prev, [key]: value }));
 	};
 

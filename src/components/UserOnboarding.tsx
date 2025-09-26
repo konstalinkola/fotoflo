@@ -51,7 +51,7 @@ export default function UserOnboarding({ onComplete }: UserOnboardingProps) {
 			title: "Beta Testing",
 			content: (
 				<div className="space-y-4">
-					<p>You're part of our beta testing program! Here's what we'd love your feedback on:</p>
+					<p>You&apos;re part of our beta testing program! Here&apos;s what we&apos;d love your feedback on:</p>
 					<ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
 						<li>Ease of uploading and managing photos</li>
 						<li>QR code generation and sharing</li>

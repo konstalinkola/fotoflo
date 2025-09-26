@@ -15,7 +15,7 @@ export default function PublicProjectPage() {
 	const [qrVisibilityDuration, setQrVisibilityDuration] = useState<number>(0);
 	const [qrExpiresOnClick, setQrExpiresOnClick] = useState<boolean>(false);
 	const [hasBeenViewed, setHasBeenViewed] = useState<boolean>(false);
-	const [customization, setCustomization] = useState<any>(null);
+	const [customization, setCustomization] = useState<{logoSize?: number; logoPosition?: {x: number; y: number}; backgroundColor?: string; textContent?: string; textPosition?: {x: number; y: number}; textColor?: string; textSize?: number} | null>(null);
 
 	useEffect(() => {
 		if (!projectId) return;
@@ -30,7 +30,7 @@ export default function PublicProjectPage() {
 						setCustomization(data.settings);
 					}
 				}
-			} catch (error) {
+			} catch {
 				// Ignore customization errors
 			}
 		}

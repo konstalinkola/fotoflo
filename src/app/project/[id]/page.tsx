@@ -99,7 +99,7 @@ export default function EditProjectPage() {
 			link.click();
 			document.body.removeChild(link);
 			window.URL.revokeObjectURL(downloadUrl);
-		} catch (error) {
+		} catch {
 			alert('Failed to download logo');
 		}
 	};

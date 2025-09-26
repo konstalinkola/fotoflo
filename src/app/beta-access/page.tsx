@@ -29,7 +29,7 @@ export default function BetaAccessPage() {
 				const data = await response.json();
 				setError(data.error || "Invalid password");
 			}
-		} catch (err) {
+		} catch {
 			setError("Something went wrong. Please try again.");
 		} finally {
 			setLoading(false);
