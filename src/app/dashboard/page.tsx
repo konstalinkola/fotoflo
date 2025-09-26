@@ -82,7 +82,7 @@ export default function DashboardPage() {
 			<Navbar />
 			<div className="p-8 space-y-6">
 				<div className="flex items-center justify-between">
-					<h1 className="text-2xl font-semibold">Dashboard</h1>
+					<h1 className="text-2xl font-semibold text-black">Dashboard</h1>
 					<Link 
 						href="/project/new"
 						className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"

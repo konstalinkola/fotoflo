@@ -75,13 +75,9 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 				// Find and set the URL for the clicked image
 				const clickedImage = images.find(img => img.path === imagePath);
 				setActiveImageUrl(clickedImage?.url || null);
-				// Show success message
-				alert("Image activated! QR code will now show this image.");
-			} else {
-				alert("Failed to activate image");
 			}
 		} catch {
-			alert("Error activating image");
+			// Silently handle errors
 		}
 	};
 

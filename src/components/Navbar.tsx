@@ -49,9 +49,9 @@ export default function Navbar() {
 						<Image
 							src="/logo.png"
 							alt="Kuvapalvelin"
-							width={32}
-							height={32}
-							className="h-8 w-auto"
+							width={48}
+							height={48}
+							className="h-12 w-auto"
 						/>
 					</Link>
 					

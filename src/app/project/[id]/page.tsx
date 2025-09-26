@@ -120,7 +120,7 @@ export default function EditProjectPage() {
 				<div className="mb-8">
 					<div className="flex items-center justify-between">
 						<div>
-							<h1 className="text-3xl font-bold text-gray-900">{name || "Edit Project"}</h1>
+							<h1 className="text-3xl font-bold text-black">{name || "Edit Project"}</h1>
 							<p className="mt-2 text-gray-600">Manage your project settings, upload photos, and view your gallery</p>
 						</div>
 						<div className="flex items-center gap-3">
@@ -146,7 +146,7 @@ export default function EditProjectPage() {
 					<div className="lg:col-span-2 space-y-8">
 						{/* Upload Section */}
 						<div className="bg-white border rounded-lg p-6">
-							<h2 className="text-xl font-semibold mb-4">Upload Photos</h2>
+							<h2 className="text-xl font-semibold mb-4 text-black">Upload Photos</h2>
 							<FileUpload 
 								projectId={id} 
 								onUploadSuccess={handleUploadSuccess}
@@ -184,7 +184,7 @@ export default function EditProjectPage() {
 								onClick={() => setSettingsExpanded(!settingsExpanded)}
 								className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
 							>
-								<h2 className="text-xl font-semibold">Project Settings</h2>
+								<h2 className="text-xl font-semibold text-black">Project Settings</h2>
 								<svg
 									className={`w-5 h-5 transition-transform ${settingsExpanded ? 'rotate-180' : ''}`}
 									fill="none"
@@ -208,23 +208,6 @@ export default function EditProjectPage() {
 											/>
 										</div>
 										
-										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
-											<div className="flex items-center gap-3">
-												<input 
-													type="color"
-													className="w-12 h-10 border border-gray-300 rounded cursor-pointer" 
-													value={backgroundColor} 
-													onChange={e=>setBackgroundColor(e.target.value)} 
-												/>
-												<input 
-													className="flex-1 border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-													value={backgroundColor} 
-													onChange={e=>setBackgroundColor(e.target.value)} 
-													placeholder="#ffffff"
-												/>
-											</div>
-										</div>
 										
 										<div>
 											<label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
@@ -256,25 +239,6 @@ export default function EditProjectPage() {
 											)}
 										</div>
 										
-										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">Storage Bucket</label>
-											<input 
-												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-												value={storageBucket} 
-												onChange={e=>setStorageBucket(e.target.value)} 
-												placeholder="bucket-name"
-											/>
-										</div>
-										
-										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">Storage Prefix (Optional)</label>
-											<input 
-												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-												value={storagePrefix} 
-												onChange={e=>setStoragePrefix(e.target.value)} 
-												placeholder="folder/subfolder"
-											/>
-										</div>
 										
 										<div>
 											<label className="block text-sm font-medium text-gray-700 mb-2">QR Code Visibility Duration</label>
