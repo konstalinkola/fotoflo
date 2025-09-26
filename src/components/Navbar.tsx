@@ -58,7 +58,7 @@ export default function Navbar() {
 					{/* Projects Button */}
 					<Link 
 						href="/dashboard"
-						className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+						className="text-gray-900 hover:text-black font-medium transition-colors"
 					>
 						Projects
 					</Link>
@@ -67,13 +67,13 @@ export default function Navbar() {
 				{/* Sign Out */}
 				<div className="flex items-center space-x-4">
 					{user && (
-						<span className="text-sm text-gray-600">
+						<span className="text-sm text-gray-800">
 							{user.email}
 						</span>
 					)}
 					<button
 						onClick={handleSignOut}
-						className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
+						className="text-gray-900 hover:text-black font-medium transition-colors"
 					>
 						Sign out
 					</button>

@@ -118,26 +118,9 @@ export default function EditProjectPage() {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* Header */}
 				<div className="mb-8">
-					<div className="flex items-center justify-between">
-						<div>
-							<h1 className="text-3xl font-bold text-black">{name || "Edit Project"}</h1>
-							<p className="mt-2 text-gray-600">Manage your project settings, upload photos, and view your gallery</p>
-						</div>
-						<div className="flex items-center gap-3">
-							<a
-								href={`/public/${id}`}
-								target="_blank"
-								className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-							>
-								View Public Page
-							</a>
-							<button
-								onClick={() => router.push("/dashboard")}
-								className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-							>
-								Back to Dashboard
-							</button>
-						</div>
+					<div>
+						<h1 className="text-3xl font-bold text-black">{name || "Edit Project"}</h1>
+						<p className="mt-2 text-gray-800">Manage your project settings, upload photos, and view your gallery</p>
 					</div>
 				</div>
 
@@ -199,9 +182,9 @@ export default function EditProjectPage() {
 								<div className="px-6 pb-6 border-t">
 									<div className="space-y-4 pt-4">
 										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
+											<label className="block text-sm font-medium text-gray-900 mb-2">Project Name</label>
 											<input 
-												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600" 
 												value={name} 
 												onChange={e=>setName(e.target.value)} 
 												placeholder="Enter project name"
@@ -210,9 +193,9 @@ export default function EditProjectPage() {
 										
 										
 										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
+											<label className="block text-sm font-medium text-gray-900 mb-2">Logo URL</label>
 											<input 
-												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+												className="w-full border border-gray-300 rounded-lg h-10 px-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600" 
 												value={logoUrl} 
 												onChange={e=>setLogoUrl(e.target.value)} 
 												placeholder="https://example.com/logo.png"
@@ -299,7 +282,7 @@ export default function EditProjectPage() {
 								<a
 									href={`/public/${id}`}
 									target="_blank"
-									className="block w-full px-4 py-2 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+									className="block w-full px-4 py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 								>
 									View Public QR Page
 								</a>
@@ -308,7 +291,7 @@ export default function EditProjectPage() {
 										navigator.clipboard.writeText(`${window.location.origin}/public/${id}`);
 										alert("Public URL copied to clipboard!");
 									}}
-									className="block w-full px-4 py-2 text-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+									className="block w-full px-4 py-2 text-center bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
 								>
 									Copy Public URL
 								</button>

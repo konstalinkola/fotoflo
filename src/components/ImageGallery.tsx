@@ -178,7 +178,7 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 	return (
 		<div className="bg-white border rounded-lg p-6">
 			<div className="flex items-center justify-between mb-6">
-				<h2 className="text-lg font-medium">Photo Gallery</h2>
+				<h2 className="text-lg font-medium text-black">Photo Gallery</h2>
 				<div className="flex items-center gap-2">
 					<span className="text-sm text-gray-500">{images.length} photos</span>
 					{!selectionMode ? (
@@ -243,7 +243,7 @@ export default function ImageGallery({ projectId }: ImageGalleryProps) {
 				<div className="space-y-6">
 					{/* Currently Showing Image */}
 					<div className="text-center">
-						<h3 className="text-md font-medium text-gray-700 mb-3">Currently showing</h3>
+						<h3 className="text-md font-medium text-gray-900 mb-3">Currently showing</h3>
 						<div className="relative inline-block">
 							<div className="w-64 h-64 bg-gray-100 rounded-lg overflow-hidden border-2 border-blue-500 shadow-lg">
 								{activeImageUrl ? (
