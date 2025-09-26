@@ -25,16 +25,14 @@ export default function LoginPage() {
 
 	return (
 		<div className="min-h-screen bg-white flex">
-			{/* Left side - Logo */}
+			{/* Left side - Logo and tagline group */}
 			<div className="flex-1 flex items-center justify-center bg-gray-50">
 				<div className="text-center">
-					<div className="mb-4">
-						<img
-							src="/logo.png"
-							alt="Kuvapalvelin"
-							className="w-72 h-72 mx-auto object-contain"
-						/>
-					</div>
+					<img
+						src="/logo.png"
+						alt="Kuvapalvelin"
+						className="w-72 h-72 mx-auto object-contain mb-4"
+					/>
 					<p className="text-xl font-bold text-gray-800">Instant photo sharing for event photographers</p>
 				</div>
 			</div>
