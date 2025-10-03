@@ -305,7 +305,7 @@ export default function PublicProjectPage() {
 							{/* Image */}
 							<Image
 								src={collectionImages[selectedImageIndex].signed_url}
-								alt={collectionImages[selectedImageIndex].name || `Image ${selectedImageIndex + 1}`}
+								alt={`Image ${selectedImageIndex + 1}`}
 								width={800}
 								height={600}
 								className="max-w-full max-h-full object-contain"
