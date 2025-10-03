@@ -732,10 +732,10 @@ export default function ProjectPage() {
 							)}
                             {/* Collection info overlay */}
                             <div className="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-sm px-2 py-1 rounded">
-                              #{activeCollection.collection_number}
+                              {activeCollection.name}
                             </div>
                             <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-sm px-2 py-1 rounded">
-                              {activeCollection.collection_images?.length || 0} images
+                              Collection
                             </div>
                           </div>
                         ) : (
