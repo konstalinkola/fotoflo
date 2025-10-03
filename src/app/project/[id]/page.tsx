@@ -726,7 +726,7 @@ export default function ProjectPage() {
                               <div className="w-full h-full flex items-center justify-center text-neutral-400">
                                 <div className="text-center">
                                   <div className="text-lg font-medium">Collection {activeCollection.name}</div>
-                                  <div className="text-sm">{activeCollection.collection_images?.length || 0} images</div>
+                                  <div className="text-sm">Collection images</div>
 									</div>
 								</div>
 							)}
