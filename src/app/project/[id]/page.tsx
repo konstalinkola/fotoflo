@@ -714,9 +714,9 @@ export default function ProjectPage() {
                       <div className="border border-neutral-200 rounded-lg flex-1 min-h-0 overflow-hidden bg-neutral-100 flex items-center justify-center">
                         {activeCollection ? (
                           <div className="w-full h-full relative">
-                            {activeCollection.coverImageUrl ? (
+                            {activeCollection.cover_image_url ? (
                               <Image
-                                src={activeCollection.coverImageUrl}
+                                src={activeCollection.cover_image_url}
                                 alt={`Collection ${activeCollection.collection_number} cover`}
                                 fill
                                 className="object-cover"
