@@ -364,9 +364,9 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 							return (
 								<CollectionCard
 									key={collection.id}
-									collectionNumber={collection.collection_number}
-									coverImageUrl={collection.coverImageUrl}
-									imageCount={collection.collection_images?.length || 0}
+									collectionNumber={collection.name}
+									coverImageUrl={collection.cover_image_url}
+									imageCount={0}
 									isActive={collection.is_active}
 									selectMode={selectMode}
 									isSelected={isSelected}
