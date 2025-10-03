@@ -850,7 +850,7 @@ export default function ProjectSettingsPage() {
                       <label className="block text-sm font-medium mb-2">Font weight:</label>
                       <select
                         value={fontWeight}
-                        onChange={(e) => setFontWeight(e.target.value)}
+                        onChange={(e) => setFontWeight(Number(e.target.value))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       >
                         <option value="300">Light (300)</option>
