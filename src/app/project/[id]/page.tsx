@@ -7,6 +7,31 @@ import FileUpload from "@/components/FileUpload";
 import ImageGallery from "@/components/ImageGallery";
 import NewCollection from "@/components/NewCollection";
 import Sidebar from "@/components/Sidebar";
+
+// Import ImageData interface
+interface ImageData {
+	id: string;
+	name: string;
+	path: string;
+	created_at: string;
+	capture_time?: string | null;
+	size?: number;
+	url: string | null;
+	source: string;
+	camera_make?: string | null;
+	camera_model?: string | null;
+	lens_model?: string | null;
+	focal_length?: number | null;
+	aperture?: number | null;
+	shutter_speed?: string | null;
+	iso?: number | null;
+	flash?: boolean | null;
+	width?: number | null;
+	height?: number | null;
+	gps_latitude?: number | null;
+	gps_longitude?: number | null;
+	gps_altitude?: number | null;
+}
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
