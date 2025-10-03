@@ -395,7 +395,7 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 									? selectedImages.has(image.path)
 										? 'border-blue-500 ring-2 ring-blue-200'
 										: 'border-gray-200 hover:border-blue-400'
-									: displayMode === 'collection' && selectedForCollection?.has(image.id)
+									: (displayMode as string) === 'collection' && selectedForCollection?.has(image.id)
 										? 'border-green-500 ring-2 ring-green-200'
 									: image.path === activeImagePath 
 										? 'border-green-500 ring-2 ring-green-200' 
