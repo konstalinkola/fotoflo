@@ -3,7 +3,7 @@
 import Image from "next/image";
 
 interface CollectionCardProps {
-  collectionNumber: number;
+  collectionNumber: string;
   coverImageUrl?: string;
   imageCount: number;
   isActive?: boolean;
@@ -104,7 +104,7 @@ export default function CollectionCard({
         {/* Collection number badge */}
         {!selectMode && (
           <div className="absolute top-1 left-1 bg-blue-600 text-white text-xs px-1 py-0.5 rounded text-[10px] font-medium">
-            #{collectionNumber}
+            {collectionNumber}
           </div>
         )}
         
