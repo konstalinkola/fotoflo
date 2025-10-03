@@ -207,7 +207,7 @@ export default function ProjectSettingsPage() {
       const hasAnyContent = hasImages || hasCollections;
       
       setHasContent(hasAnyContent || false);
-      setIsModeLocked(hasAnyContent);
+      setIsModeLocked(hasAnyContent || false);
     } catch (error) {
       console.error("Error checking project content:", error);
       // If there's an error (e.g., tables don't exist), assume no content
