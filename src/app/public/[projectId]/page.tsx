@@ -257,7 +257,7 @@ export default function PublicProjectPage() {
 							>
 								<Image
 									src={image.signed_url}
-									alt={image.name || `Image ${index + 1}`}
+									alt={`Image ${index + 1}`}
 									width={300}
 									height={300}
 									className="w-full h-full object-cover"
