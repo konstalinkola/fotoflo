@@ -194,7 +194,7 @@ export default function PublicProjectPage() {
 					const url = window.URL.createObjectURL(blob);
 					const a = document.createElement('a');
 					a.href = url;
-					a.download = image.name || `image-${i + 1}.jpg`;
+					a.download = `image-${i + 1}.jpg`;
 					document.body.appendChild(a);
 					a.click();
 					window.URL.revokeObjectURL(url);
