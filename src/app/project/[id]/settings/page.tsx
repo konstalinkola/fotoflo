@@ -206,7 +206,7 @@ export default function ProjectSettingsPage() {
       const hasCollections = collections && collections.length > 0;
       const hasAnyContent = hasImages || hasCollections;
       
-      setHasContent(hasAnyContent);
+      setHasContent(hasAnyContent || false);
       setIsModeLocked(hasAnyContent);
     } catch (error) {
       console.error("Error checking project content:", error);
