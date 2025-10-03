@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { X, Plus } from "lucide-react";
 
 interface NewCollectionProps {
-  selectedImages: {id: string; path: string; url: string | null}[]; // Array of selected image objects from gallery
+  selectedImages: {id: string; path: string; url: string | null; name?: string}[]; // Array of selected image objects from gallery
   onSave: () => void;
   onClear: () => void;
   onToggleSelection: (imageId: string) => void;
