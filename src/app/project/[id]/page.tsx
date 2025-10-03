@@ -717,7 +717,7 @@ export default function ProjectPage() {
                             {activeCollection.cover_image_url ? (
                               <Image
                                 src={activeCollection.cover_image_url}
-                                alt={`Collection ${activeCollection.collection_number} cover`}
+                                alt={`Collection ${activeCollection.name} cover`}
                                 fill
                                 className="object-cover"
                                 sizes="(max-width: 768px) 100vw, 50vw"
