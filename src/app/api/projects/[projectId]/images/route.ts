@@ -26,57 +26,97 @@ export async function GET(
 	const bucket = project.storage_bucket as string;
 	const admin = createSupabaseServiceClient();
 
-	// Get images from project folder (user bucket is already isolated)
-	const projectPrefix = project.storage_prefix || projectId;
-	const { data: projectImages, error: projectError } = await admin.storage
-		.from(bucket)
-		.list(projectPrefix, {
-			limit: 100,
-			sortBy: { column: "created_at", order: "desc" },
-		});
+	// Get images from database with metadata
+	const { data: dbImages, error: dbError } = await supabase
+		.from('images')
+		.select('*')
+		.eq('project_id', projectId)
+		.order('capture_time', { ascending: false, nullsFirst: false })
+		.order('uploaded_at', { ascending: false });
 
-	// Combine and deduplicate images
-	interface ImageWithSource {
-		path: string;
-		source: string;
-		name: string;
-		created_at: string;
-		url?: string | null;
-		size?: number;
-		metadata?: {
-			size?: number;
-			[key: string]: unknown;
-		};
-		[key: string]: unknown;
+	if (dbError) {
+		console.error('Database error:', dbError);
+		// If table doesn't exist, fall back to storage-only approach
+		if (dbError.message.includes('relation "images" does not exist') || 
+			dbError.message.includes('does not exist') ||
+			dbError.code === 'PGRST116') {
+			
+			console.log('Images table does not exist, falling back to storage-only approach');
+			
+			// Fall back to the old storage-only approach
+			const projectPrefix = project.storage_prefix || projectId;
+			const { data: projectImages, error: projectError } = await admin.storage
+				.from(bucket)
+				.list(projectPrefix, {
+					limit: 100,
+					sortBy: { column: "created_at", order: "desc" },
+				});
+
+			if (projectError) {
+				return NextResponse.json({ error: "Failed to fetch images from storage" }, { status: 500 });
+			}
+
+			const allImages = projectImages ? projectImages.map(img => ({
+				...img,
+				path: `${projectPrefix}/${img.name}`,
+				source: 'project'
+			})) : [];
+
+			const imagesWithUrls = await Promise.all(
+				allImages.map(async (img) => {
+					const { data: signed } = await admin.storage
+						.from(bucket)
+						.createSignedUrl(img.path, 3600);
+					
+					return {
+						id: img.path, // Use path as ID for storage-only images
+						name: img.name,
+						path: img.path,
+						created_at: img.created_at,
+						capture_time: null, // No EXIF data available
+						size: img.metadata?.size,
+						url: signed?.signedUrl || null,
+						source: img.source
+					};
+				})
+			);
+
+			return NextResponse.json({ images: imagesWithUrls });
+		}
+		
+		return NextResponse.json({ error: "Failed to fetch images", details: dbError.message }, { status: 500 });
 	}
-	const allImages: ImageWithSource[] = [];
-	
-	if (projectImages && !projectError) {
-		allImages.push(...projectImages.map(img => ({
-			...img,
-			path: `${projectPrefix}/${img.name}`,
-			source: 'project'
-		})));
-	}
 
-	// Sort by created_at
-	const sortedImages = allImages
-		.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-	// Generate signed URLs for each image
+	// Generate signed URLs for each image and combine with metadata
 	const imagesWithUrls = await Promise.all(
-		sortedImages.map(async (img) => {
+		(dbImages || []).map(async (img) => {
 			const { data: signed } = await admin.storage
 				.from(bucket)
-				.createSignedUrl(img.path, 3600);
+				.createSignedUrl(img.storage_path, 3600);
 			
 			return {
-				name: img.name,
-				path: img.path,
-				created_at: img.created_at,
-				size: img.metadata?.size,
+				id: img.id, // Add the image ID
+				name: img.file_name,
+				path: img.storage_path,
+				created_at: img.uploaded_at,
+				capture_time: img.capture_time,
+				size: img.file_size,
 				url: signed?.signedUrl || null,
-				source: img.source
+				source: 'project',
+				// Include additional EXIF data if needed
+				camera_make: img.camera_make,
+				camera_model: img.camera_model,
+				lens_model: img.lens_model,
+				focal_length: img.focal_length,
+				aperture: img.aperture,
+				shutter_speed: img.shutter_speed,
+				iso: img.iso,
+				flash: img.flash,
+				width: img.width,
+				height: img.height,
+				gps_latitude: img.gps_latitude,
+				gps_longitude: img.gps_longitude,
+				gps_altitude: img.gps_altitude
 			};
 		})
 	);

@@ -9,7 +9,7 @@ export async function GET(
 	const supabase = await createSupabaseServerClient();
 	const { data, error } = await supabase
 		.from("projects")
-		.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click")
+		.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode")
 		.eq("id", projectId)
 		.single();
 	if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -23,10 +23,10 @@ export async function PUT(
 	const { projectId } = await params;
 	const supabase = await createSupabaseServerClient();
 	const body = await request.json();
-	const { name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click } = body;
+	const { name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode } = body;
 	const { data, error } = await supabase
 		.from("projects")
-		.update({ name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click })
+		.update({ name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode })
 		.eq("id", projectId)
 		.select("id")
 		.single();

@@ -1,0 +1,7 @@
+Line 434 needs to be changed from:
+<DialogContent className="max-w-none w-[95vw] max-h-[95vh] h-[95vh] flex flex-col p-0 gap-0">
+
+To:
+<DialogContent className="max-w-none w-[90vh] h-[90vh] flex flex-col p-0 gap-0" style={{ aspectRatio: '1/1' }}>
+
+This will make the modal square (1:1 aspect ratio) by using viewport height for both width and height.

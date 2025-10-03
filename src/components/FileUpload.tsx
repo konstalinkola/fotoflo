@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 
 interface FileUploadProps {
 	projectId: string;
-	onUploadSuccess?: () => void;
+	onUploadSuccess?: (uploadedData?: { paths: string[], ids: string[] }) => void;
 	onUploadError?: (error: string) => void;
 }
 
@@ -12,6 +12,7 @@ export default function FileUpload({ projectId, onUploadSuccess, onUploadError }
 	const [isDragging, setIsDragging] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
 	const [uploadProgress, setUploadProgress] = useState(0);
+	const [uploadStatus, setUploadStatus] = useState<string>("");
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleDragOver = (e: React.DragEvent) => {
@@ -30,50 +31,76 @@ export default function FileUpload({ projectId, onUploadSuccess, onUploadError }
 		
 		const files = Array.from(e.dataTransfer.files);
 		if (files.length > 0) {
-			uploadFile(files[0]);
+			uploadFiles(files);
 		}
 	};
 
 	const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (files && files.length > 0) {
-			uploadFile(files[0]);
+			uploadFiles(Array.from(files));
 		}
 	};
 
-	const uploadFile = async (file: File) => {
+	const uploadFiles = async (files: File[]) => {
 		setIsUploading(true);
 		setUploadProgress(0);
-
-		const formData = new FormData();
-		formData.append("file", file);
-
-		try {
-			const response = await fetch(`/api/projects/${projectId}/upload`, {
-				method: "POST",
-				body: formData,
-			});
-
-			const result = await response.json();
-
-			if (!response.ok) {
-				throw new Error(result.error || "Upload failed");
-			}
-
-			setUploadProgress(100);
-			onUploadSuccess?.();
+		
+		let successCount = 0;
+		let failCount = 0;
+		const uploadedPaths: string[] = [];
+		const uploadedIds: string[] = [];
+		
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+			setUploadStatus(`Uploading ${i + 1} of ${files.length}...`);
 			
-			// Reset file input
-			if (fileInputRef.current) {
-				fileInputRef.current.value = "";
+			try {
+				const formData = new FormData();
+				formData.append("file", file);
+
+				const response = await fetch(`/api/projects/${projectId}/upload`, {
+					method: "POST",
+					body: formData,
+				});
+
+				const result = await response.json();
+
+				if (!response.ok) {
+					throw new Error(result.error || "Upload failed");
+				}
+
+				// Collect the uploaded image path and ID
+				if (result.path) {
+					uploadedPaths.push(result.path);
+				}
+				if (result.imageId) {
+					uploadedIds.push(result.imageId);
+				}
+
+				successCount++;
+				setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+			} catch (error) {
+				failCount++;
+				console.error(`Failed to upload ${file.name}:`, error);
 			}
-		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : "Upload failed";
-			onUploadError?.(errorMessage);
-		} finally {
-			setIsUploading(false);
-			setTimeout(() => setUploadProgress(0), 1000);
 		}
+		
+		// Show completion status
+		if (failCount > 0) {
+			onUploadError?.(`${successCount} uploaded successfully, ${failCount} failed`);
+		} else {
+			onUploadSuccess?.({ paths: uploadedPaths, ids: uploadedIds });
+		}
+		
+		// Reset file input
+		if (fileInputRef.current) {
+			fileInputRef.current.value = "";
+		}
+		
+		setIsUploading(false);
+		setUploadStatus("");
+		setTimeout(() => setUploadProgress(0), 1000);
 	};
 
 	return (
@@ -88,25 +115,26 @@ export default function FileUpload({ projectId, onUploadSuccess, onUploadError }
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
 			>
-				<input
-					ref={fileInputRef}
-					type="file"
-					accept="image/*"
-					onChange={handleFileSelect}
-					className="hidden"
-				/>
+			<input
+				ref={fileInputRef}
+				type="file"
+				accept="image/*"
+				multiple
+				onChange={handleFileSelect}
+				className="hidden"
+			/>
 				
-				{isUploading ? (
-					<div className="space-y-4">
-						<div className="text-sm text-gray-600">Uploading...</div>
-						<div className="w-full bg-gray-200 rounded-full h-2">
-							<div
-								className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-								style={{ width: `${uploadProgress}%` }}
-							></div>
-						</div>
+			{isUploading ? (
+				<div className="space-y-4">
+					<div className="text-sm text-gray-600">{uploadStatus || "Uploading..."}</div>
+					<div className="w-full bg-gray-200 rounded-full h-2">
+						<div
+							className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+							style={{ width: `${uploadProgress}%` }}
+						></div>
 					</div>
-				) : (
+				</div>
+			) : (
 					<div className="space-y-4">
 						<div className="text-gray-500">
 							<svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">

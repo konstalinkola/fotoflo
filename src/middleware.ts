@@ -7,7 +7,8 @@ export function middleware(request: NextRequest) {
 	
 	// Allow access to beta-access page and API
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
-		request.nextUrl.pathname.startsWith("/api/beta-access")) {
+		request.nextUrl.pathname.startsWith("/api/beta-access") ||
+		request.nextUrl.pathname.startsWith("/api/")) {
 		return NextResponse.next();
 	}
 	

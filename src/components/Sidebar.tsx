@@ -1,0 +1,230 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { 
+  Home,
+  ChevronRight,
+  ChevronsUpDown,
+  MoreHorizontal,
+  LogOut
+} from "lucide-react";
+
+interface Project {
+  id: string;
+  name: string;
+  logo_url?: string;
+}
+
+interface SidebarProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
+  user?: {
+    id: string;
+    email?: string;
+    user_metadata?: {
+      full_name?: string;
+      avatar_url?: string;
+    };
+  } | null;
+  projects?: Project[];
+  supabaseClient?: ReturnType<typeof createSupabaseBrowserClient>;
+}
+
+export default function Sidebar({ collapsed = false, onToggle, user, projects = [], supabaseClient }: SidebarProps) {
+  const [homeExpanded, setHomeExpanded] = useState(true);
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Get user's name initials
+  const getUserInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return "U";
+  };
+
+  // Get user's display name
+  const getUserName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return "User";
+  };
+
+  // Get latest 5 projects
+  const latestProjects = projects.slice(0, 5);
+
+  // Determine active states
+  const isDashboardActive = pathname === '/dashboard';
+  const isProjectPage = pathname.startsWith('/project/');
+  const currentProjectId = isProjectPage ? pathname.split('/project/')[1] : null;
+
+  // Handle logout
+  const handleLogout = async () => {
+    if (supabaseClient) {
+      await supabaseClient.auth.signOut();
+      router.push("/login");
+    }
+  };
+
+  // Handle logo/home click
+  const handleLogoClick = () => {
+    router.push("/dashboard");
+  };
+
+  return (
+    <div className={`bg-neutral-50 flex flex-col h-screen transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+      {/* Logo */}
+      <div className="p-4">
+        <div className="flex items-center justify-center">
+          <button 
+            onClick={handleLogoClick}
+            className="relative w-32 h-32 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <Image
+              src="/logo.png"
+              alt="Fotoflow"
+              fill
+              className="object-contain"
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+        {/* Application Section */}
+        <div className="space-y-2">
+          <div className="px-2 py-1">
+            <p className="text-xs font-medium text-neutral-950 opacity-70">
+              Application
+            </p>
+          </div>
+          
+          <div className="space-y-1">
+            {/* Home Dropdown */}
+            <div className="space-y-1">
+              <div className="flex">
+                <Link href="/dashboard" className="flex-1">
+                  <Button
+                    variant="ghost"
+                    className={`w-full justify-start h-8 px-2 hover:bg-neutral-200 ${
+                      isDashboardActive ? 'bg-neutral-100' : ''
+                    }`}
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    {!collapsed && (
+                      <span className="flex-1 text-left">Home</span>
+                    )}
+                  </Button>
+                </Link>
+                {!collapsed && (
+                  <Button
+                    variant="ghost"
+                    className={`h-8 px-1 hover:bg-neutral-200 ${
+                      isDashboardActive ? 'bg-neutral-100' : ''
+                    }`}
+                    onClick={() => setHomeExpanded(!homeExpanded)}
+                  >
+                    <ChevronRight className={`w-4 h-4 transition-transform ${homeExpanded ? "rotate-90" : ""}`} />
+                  </Button>
+                )}
+              </div>
+              
+              {homeExpanded && !collapsed && (
+                <div className="ml-6 space-y-1 border-l border-neutral-200 pl-4">
+                  {latestProjects.length > 0 ? (
+                    latestProjects.map((project) => {
+                      const isCurrentProject = currentProjectId === project.id;
+                      return (
+                        <Link key={project.id} href={`/project/${project.id}`}>
+                          <Button 
+                            variant="ghost" 
+                            className={`w-full justify-start h-7 px-2 text-sm text-neutral-950 hover:bg-neutral-200 ${
+                              isCurrentProject ? 'bg-neutral-100' : ''
+                            }`}
+                          >
+                            {project.name}
+                          </Button>
+                        </Link>
+                      );
+                    })
+                  ) : (
+                    <div className="px-2 py-1 text-xs text-neutral-500">
+                      No projects yet
+                    </div>
+                  )}
+                  
+                  {projects.length > 5 && (
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start h-7 px-2 text-sm text-neutral-500 opacity-70"
+                    >
+                      <MoreHorizontal className="w-4 h-4 mr-1" />
+                      More
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer - User Profile */}
+      <div className="p-2 border-t border-neutral-200 relative">
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start h-auto p-2"
+          onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+        >
+          <Avatar className="w-8 h-8 mr-2">
+            <AvatarImage src={user?.user_metadata?.avatar_url} />
+            <AvatarFallback className="bg-neutral-900 text-white text-xs font-semibold">
+              {getUserInitials()}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+              <p className="text-sm font-semibold text-neutral-950 truncate">
+                {getUserName()}
+              </p>
+              <p className="text-xs text-neutral-500 truncate">
+                {user?.email || "user@example.com"}
+              </p>
+            </div>
+          )}
+          {!collapsed && (
+            <ChevronsUpDown className="w-4 h-4 flex-shrink-0" />
+          )}
+        </Button>
+        
+        {/* Logout Menu */}
+        {showLogoutMenu && !collapsed && (
+          <div className="absolute bottom-full left-2 right-2 mb-2 bg-white border border-neutral-200 rounded-lg shadow-lg py-1">
+            <Button
+              variant="ghost"
+              className="w-full justify-start h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Log out
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

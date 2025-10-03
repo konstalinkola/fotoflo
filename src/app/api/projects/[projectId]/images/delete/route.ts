@@ -31,19 +31,33 @@ export async function DELETE(
 		return NextResponse.json({ error: "No files specified for deletion" }, { status: 400 });
 	}
 
-	// Delete files from Supabase Storage
+	// Delete files from Supabase Storage and database
 	const admin = createSupabaseServiceClient();
 	const bucket = project.storage_bucket as string;
 	
 	const deleteResults = await Promise.allSettled(
 		filePaths.map(async (filePath: string) => {
-			const { error } = await admin.storage
+			// Delete from storage
+			const { error: storageError } = await admin.storage
 				.from(bucket)
 				.remove([filePath]);
 			
-			if (error) {
-				throw new Error(`Failed to delete ${filePath}: ${error.message}`);
+			if (storageError) {
+				throw new Error(`Failed to delete ${filePath} from storage: ${storageError.message}`);
 			}
+
+			// Delete from database
+			const { error: dbError } = await supabase
+				.from('images')
+				.delete()
+				.eq('project_id', projectId)
+				.eq('storage_path', filePath);
+
+			if (dbError) {
+				console.warn(`Failed to delete ${filePath} from database:`, dbError);
+				// Don't fail the operation if database deletion fails
+			}
+			
 			return filePath;
 		})
 	);
