@@ -27,7 +27,7 @@ export default function PublicProjectPage() {
 	const [qrVisibilityDuration, setQrVisibilityDuration] = useState<number>(0);
 	const [qrExpiresOnClick, setQrExpiresOnClick] = useState<boolean>(false);
 	const [hasBeenViewed, setHasBeenViewed] = useState<boolean>(false);
-	const [customization, setCustomization] = useState<{logoSize?: number; logoPosition?: {x: number; y: number}; backgroundColor?: string; textContent?: string; textPosition?: {x: number; y: number}; textColor?: string; textSize?: number} | null>(null);
+	const [customization, setCustomization] = useState<{logoSize?: number; logoPosition?: {x: number; y: number}; backgroundColor?: string; textContent?: string; textPosition?: {x: number; y: number}; textColor?: string; textSize?: number; fontFamily?: string; fontWeight?: string} | null>(null);
 	
 	// Collection gallery state
 	const [isCollectionMode, setIsCollectionMode] = useState<boolean>(false);
