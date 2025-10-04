@@ -146,29 +146,6 @@ export default function LoginPage() {
 		}
 	}
 
-	// Development helper function
-	async function testLogin() {
-		setLoading(true);
-		try {
-			console.log("Testing with demo credentials...");
-			const { data, error } = await supabase.auth.signInWithPassword({
-				email: "demo@example.com",
-				password: "demo123456"
-			});
-			if (error) {
-				console.error("Test login error:", error);
-				alert(`Test login failed: ${error.message}\n\nThis is expected if the demo account doesn't exist.`);
-			} else {
-				console.log("Test login successful:", data);
-				window.location.href = "/dashboard";
-			}
-		} catch (err) {
-			console.error("Unexpected error:", err);
-			alert("An unexpected error occurred");
-		} finally {
-			setLoading(false);
-		}
-	}
 
 	return (
 		<div className="fixed inset-0 w-full h-full bg-white flex items-center justify-center overflow-hidden">
@@ -373,15 +350,6 @@ export default function LoginPage() {
 									Sign in with Apple
 								</Button>
 								
-								{/* Development Test Button */}
-								<Button 
-									variant="outline" 
-									className="w-full h-[36px] border-orange-200 hover:bg-orange-50 text-orange-600"
-									onClick={testLogin}
-									disabled={loading}
-								>
-									🧪 Test Login (Demo)
-								</Button>
 							</div>
 						</div>
 					</div>

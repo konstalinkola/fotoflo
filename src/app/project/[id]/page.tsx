@@ -218,15 +218,57 @@ export default function ProjectPage() {
       // Add selected images to the collection
       const selectedImageIds = Array.from(selectedForCollection);
       
-      const addImagesResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}/images`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_ids: selectedImageIds })
+      console.log('Adding images to collection:', {
+        collectionId: collection.id,
+        selectedImageIds,
+        selectedForCollection: selectedForCollection
       });
+      
+      console.log('selectedImageIds details:', {
+        length: selectedImageIds.length,
+        firstId: selectedImageIds[0],
+        allIds: selectedImageIds
+      });
+      
+      console.log('About to enter try block...');
+      
+      try {
+        console.log('Inside try block!');
+        console.log('Making API call to:', `/api/projects/${projectId}/collections/${collection.id}/images`);
+        console.log('Request body:', { image_ids: selectedImageIds });
+        
+        // Add timeout to the fetch request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        console.log('Starting fetch request...');
+        
+        const addImagesResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}/images`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_ids: selectedImageIds }),
+          signal: controller.signal
+        });
 
-      if (!addImagesResponse.ok) {
-        const errorData = await addImagesResponse.json();
-        throw new Error(`Failed to add images to collection: ${errorData.error || 'Unknown error'}`);
+        clearTimeout(timeoutId);
+        console.log('Fetch request completed!');
+        console.log('Add images response status:', addImagesResponse.status);
+        console.log('Add images response headers:', Object.fromEntries(addImagesResponse.headers.entries()));
+
+        if (!addImagesResponse.ok) {
+          const errorData = await addImagesResponse.json();
+          console.error('Failed to add images to collection:', errorData);
+          throw new Error(`Failed to add images to collection: ${errorData.error || 'Unknown error'}`);
+        }
+
+        console.log('Successfully added images to collection');
+      } catch (error) {
+        console.error('Error adding images to collection:', error);
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.error('Request timed out after 10 seconds');
+          throw new Error('Request timed out - the server may be unreachable');
+        }
+        throw error;
       }
 
       // Clear the selection
@@ -234,7 +276,21 @@ export default function ProjectPage() {
       setUploadMessage(`Collection #${collection.collection_number} created with ${selectedImageIds.length} images!`);
       setTimeout(() => setUploadMessage(""), 3000);
       
-      // Auto-activate the newly created collection
+      // Auto-activate the newly created collection in the database
+      const activateResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: true })
+      });
+
+      if (!activateResponse.ok) {
+        const errorData = await activateResponse.json();
+        console.error('Failed to activate collection in database:', errorData);
+      } else {
+        console.log('Collection activated successfully in database');
+      }
+
+      // Auto-activate the newly created collection in state
       setActiveCollection(collection);
       
       // Refresh gallery to show the new collection
@@ -641,7 +697,7 @@ export default function ProjectPage() {
                             onClick={() => handleSaveCollection()}
                             disabled={selectedForCollection.size === 0}
                           >
-                            <Plus className="w-4 h-4 mr-1" />
+                            Save
                           </Button>
                           <div className="flex items-center border border-neutral-200 rounded-lg">
                             <Button 
