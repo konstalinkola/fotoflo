@@ -48,6 +48,11 @@ export async function GET(
     .single();
 
   if (collectionError || !activeCollection) {
+    console.error('Collection API Error:', {
+      projectId,
+      collectionError: collectionError?.message,
+      hasActiveCollection: !!activeCollection
+    });
     return NextResponse.json({ 
       error: "No active collection found",
       project: {
@@ -73,7 +78,8 @@ export async function GET(
       return {
         id: image.id,
         name: image.file_name,
-        url: signed?.signedUrl,
+        signed_url: signed?.signedUrl,
+        url: signed?.signedUrl, // Keep both for compatibility
         width: image.width,
         height: image.height,
         sort_order: collectionImage.sort_order

@@ -13,6 +13,8 @@ interface CustomizationSettings {
 	textPosition: { x: number; y: number };
 	textColor: string;
 	textSize: number;
+	fontFamily: string;
+	fontWeight: string;
 }
 
 export default function CustomizePage() {
@@ -31,7 +33,9 @@ export default function CustomizePage() {
 		textContent: "",
 		textPosition: { x: 0, y: 150 },
 		textColor: "#333333",
-		textSize: 16
+		textSize: 16,
+		fontFamily: "Inter",
+		fontWeight: "400"
 	});
 
 	useEffect(() => {
@@ -60,9 +64,11 @@ export default function CustomizePage() {
 					if (customRes.ok) {
 						const customData = await customRes.json();
 						console.log("Customization data:", customData);
-						if (customData.settings) {
+						if (customData.settings && typeof customData.settings === 'object') {
 							setSettings(prev => ({ ...prev, ...customData.settings }));
 						}
+					} else {
+						console.log("Failed to load customization settings:", customRes.status);
 					}
 				} catch (error) {
 					console.log("No customization settings found:", error);
@@ -92,6 +98,8 @@ export default function CustomizePage() {
 		setSaving(true);
 		try {
 			console.log("Saving settings:", settings);
+			console.log("Settings JSON:", JSON.stringify(settings, null, 2));
+			
 			const res = await fetch(`/api/projects/${projectId}/customization`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
@@ -102,8 +110,10 @@ export default function CustomizePage() {
 			console.log("Save response:", result, "Status:", res.status);
 			
 			if (res.ok) {
-				alert("Customization settings saved!");
+				alert("Customization settings saved successfully!");
+				console.log("Settings saved successfully");
 			} else {
+				console.error("Save failed:", result);
 				alert(`Failed to save settings: ${result.error || 'Unknown error'}`);
 			}
 		} catch (error) {

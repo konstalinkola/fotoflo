@@ -65,7 +65,9 @@ export async function GET(
 
       return {
         ...collection,
-        coverImageUrl
+        name: collection.collection_number.toString(),
+        cover_image_url: coverImageUrl,
+        image_count: collection.collection_images?.length || 0
       };
     })
   );

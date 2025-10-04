@@ -52,7 +52,7 @@ interface ImageGalleryProps {
 
 export default function ImageGallery({ projectId, displayMode = 'single', viewMode = 'grid', selectMode = false, onSelectModeChange, onActiveImageChange, onSelectionCountChange, selectedForCollection, onToggleCollectionSelection, onCollectionActivation, selectedCollections, onToggleCollectionDeletion, onDeleteSelectedCollections, activeCollectionId }: ImageGalleryProps) {
 	const [images, setImages] = useState<ImageData[]>([]);
-  const [collections, setCollections] = useState<{id: string; name: string; cover_image_url?: string; is_active?: boolean; created_at: string}[]>([]);
+  const [collections, setCollections] = useState<{id: string; name: string; cover_image_url?: string; is_active?: boolean; created_at: string; image_count?: number}[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [activeImagePath, setActiveImagePath] = useState<string | null>(null);
@@ -258,7 +258,7 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 	if (loading) {
 		return (
 			<div className="flex items-center justify-center py-8">
-				<div className="text-gray-500">Loading images...</div>
+				<div className="text-gray-500">Loading {displayMode === 'collection' ? 'collections' : 'images'}...</div>
 			</div>
 		);
 	}
@@ -279,72 +279,152 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 
 	return (
 		<div className="h-full">
-			{images.length === 0 ? (
-				<div className="text-center py-8 text-gray-500">
-					<svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-					</svg>
-					<p>No photos uploaded yet</p>
-					<p className="text-sm">Upload your first photo using the upload section above</p>
-				</div>
-			) : viewMode === 'list' ? (
+			{displayMode === 'collection' ? (
+				collections.length === 0 ? (
+					<div className="text-center py-8 text-gray-500">
+						<svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+						</svg>
+						<p>No collections created yet</p>
+						<p className="text-sm">Create your first collection using the &quot;New Collection&quot; section above</p>
+					</div>
+				) : null
+			) : (
+				images.length === 0 ? (
+					<div className="text-center py-8 text-gray-500">
+						<svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+						</svg>
+						<p>No photos uploaded yet</p>
+						<p className="text-sm">Upload your first photo using the upload section above</p>
+					</div>
+				) : null
+			)}
+			
+			{((displayMode === 'collection' && collections.length > 0) || (displayMode === 'single' && images.length > 0)) && (
+			viewMode === 'list' ? (
 				/* List View */
 				<div className="h-full flex flex-col">
 					{/* Table Header - Fixed */}
 					<div className="grid grid-cols-12 gap-4 px-4 py-2 text-sm font-medium text-gray-500 border-b flex-shrink-0">
 						{selectMode && <div className="col-span-1"></div>}
-						<div className={selectMode ? "col-span-2" : "col-span-3"}>#</div>
-						<div className={selectMode ? "col-span-5" : "col-span-6"}>File name</div>
-						<div className={selectMode ? "col-span-4" : "col-span-3"}>Capture time</div>
+						{displayMode === 'collection' ? (
+							<>
+								<div className={selectMode ? "col-span-2" : "col-span-3"}>#</div>
+								<div className={selectMode ? "col-span-4" : "col-span-5"}>Collection ID</div>
+								<div className={selectMode ? "col-span-3" : "col-span-2"}>Photos</div>
+								<div className={selectMode ? "col-span-2" : "col-span-2"}>Creation time</div>
+							</>
+						) : (
+							<>
+								<div className={selectMode ? "col-span-2" : "col-span-3"}>#</div>
+								<div className={selectMode ? "col-span-5" : "col-span-6"}>File name</div>
+								<div className={selectMode ? "col-span-4" : "col-span-3"}>Capture time</div>
+							</>
+						)}
 					</div>
 					
 					{/* Table Rows - Scrollable */}
 					<div className="flex-1 overflow-auto space-y-2">
-						{images.map((image, index) => {
-						const imageNumber = images.length - index;
-						// Use capture time from EXIF if available, otherwise use upload time
-						const timeToUse = image.capture_time || image.created_at;
-						const captureTime = new Date(timeToUse).toLocaleTimeString('en-GB', { 
-							hour: '2-digit', 
-							minute: '2-digit',
-							hour12: false
-						});
-						
-						return (
-							<div 
-								key={image.path}
-								className={`grid grid-cols-12 gap-4 px-4 py-3 text-sm border-b hover:bg-gray-50 cursor-pointer ${
-									selectMode && selectedImages.has(image.path) 
-										? 'bg-blue-50' 
-										: displayMode === 'collection' && selectedForCollection?.has(image.id)
-											? 'bg-green-50'
-											: ''
-								}`}
-								onClick={() => selectMode ? toggleSelection(image.path) : handleImageClick(image.path)}
-							>
-								{selectMode && (
-									<div className="col-span-1 flex items-center">
-										<input
-											type="checkbox"
-											checked={selectedImages.has(image.path)}
-											onChange={() => toggleSelection(image.path)}
-											className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
-											onClick={(e) => e.stopPropagation()}
-										/>
+						{displayMode === 'collection' ? (
+							/* Collections Table */
+							collections.map((collection, index) => {
+								const collectionNumber = collections.length - index;
+								const creationTime = new Date(collection.created_at).toLocaleTimeString('en-GB', { 
+									hour: '2-digit', 
+									minute: '2-digit',
+									hour12: false
+								});
+								
+								return (
+									<div 
+										key={collection.id}
+										className={`grid grid-cols-12 gap-4 px-4 py-3 text-sm border-b hover:bg-gray-50 cursor-pointer ${
+											selectMode && selectedCollections?.has(collection.id) 
+												? 'bg-blue-50' 
+												: activeCollectionId === collection.id
+													? 'bg-green-50'
+													: ''
+										}`}
+										onClick={() => selectMode ? onToggleCollectionDeletion?.(collection.id) : onCollectionActivation?.(collection)}
+									>
+										{selectMode && (
+											<div className="col-span-1 flex items-center">
+												<input
+													type="checkbox"
+													checked={selectedCollections?.has(collection.id) || false}
+													onChange={() => onToggleCollectionDeletion?.(collection.id)}
+													className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+													onClick={(e) => e.stopPropagation()}
+												/>
+											</div>
+										)}
+										<div className={`${selectMode ? "col-span-2" : "col-span-3"} font-mono text-gray-700`}>
+											#{collectionNumber}
+										</div>
+										<div className={`${selectMode ? "col-span-4" : "col-span-5"} font-mono text-xs break-all`}>
+											{collection.id}
+											{activeCollectionId === collection.id && (
+												<span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded">ACTIVE</span>
+											)}
+										</div>
+										<div className={`${selectMode ? "col-span-3" : "col-span-2"} text-gray-600`}>
+											{collection.image_count || 0}
+										</div>
+										<div className={`${selectMode ? "col-span-2" : "col-span-2"} text-gray-600`}>
+											{creationTime}
+										</div>
 									</div>
-								)}
-								<div className={`${selectMode ? "col-span-2" : "col-span-3"} font-mono text-gray-700`}>
-									#{imageNumber}
-								</div>
-								<div className={`${selectMode ? "col-span-5" : "col-span-6"} truncate`}>
-									{image.name}
-								</div>
-								<div className={`${selectMode ? "col-span-4" : "col-span-3"} text-gray-600`}>
-									{captureTime}
-								</div>
-							</div>
-						);
-						})}
+								);
+							})
+						) : (
+							/* Images Table */
+							images.map((image, index) => {
+								const imageNumber = images.length - index;
+								// Use capture time from EXIF if available, otherwise use upload time
+								const timeToUse = image.capture_time || image.created_at;
+								const captureTime = new Date(timeToUse).toLocaleTimeString('en-GB', { 
+									hour: '2-digit', 
+									minute: '2-digit',
+									hour12: false
+								});
+								
+								return (
+									<div 
+										key={image.path}
+									className={`grid grid-cols-12 gap-4 px-4 py-3 text-sm border-b hover:bg-gray-50 cursor-pointer ${
+										selectMode && selectedImages.has(image.path) 
+											? 'bg-blue-50' 
+											: selectedForCollection?.has(image.id)
+												? 'bg-green-50'
+												: ''
+									}`}
+										onClick={() => selectMode ? toggleSelection(image.path) : handleImageClick(image.path)}
+									>
+										{selectMode && (
+											<div className="col-span-1 flex items-center">
+												<input
+													type="checkbox"
+													checked={selectedImages.has(image.path)}
+													onChange={() => toggleSelection(image.path)}
+													className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+													onClick={(e) => e.stopPropagation()}
+												/>
+											</div>
+										)}
+										<div className={`${selectMode ? "col-span-2" : "col-span-3"} font-mono text-gray-700`}>
+											#{imageNumber}
+										</div>
+										<div className={`${selectMode ? "col-span-5" : "col-span-6"} truncate`}>
+											{image.name}
+										</div>
+										<div className={`${selectMode ? "col-span-4" : "col-span-3"} text-gray-600`}>
+											{captureTime}
+										</div>
+									</div>
+								);
+							})
+						)}
 					</div>
 				</div>
 			) : (
@@ -366,7 +446,7 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 									key={collection.id}
 									collectionNumber={collection.name}
 									coverImageUrl={collection.cover_image_url}
-									imageCount={0}
+									imageCount={collection.image_count || 0}
 									isActive={collection.is_active}
 									selectMode={selectMode}
 									isSelected={isSelected}
@@ -451,6 +531,7 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 					)}
 					</div>
 				</div>
+			)
 			)}
 		</div>
 	);

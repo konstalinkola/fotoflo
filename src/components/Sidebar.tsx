@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   LogOut
 } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 interface Project {
   id: string;
@@ -32,7 +33,7 @@ interface SidebarProps {
     };
   } | null;
   projects?: Project[];
-  supabaseClient?: ReturnType<typeof createSupabaseBrowserClient>;
+  supabaseClient?: ReturnType<typeof createSupabaseBrowserClient> | null;
 }
 
 export default function Sidebar({ collapsed = false, onToggle, user, projects = [], supabaseClient }: SidebarProps) {

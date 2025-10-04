@@ -320,8 +320,31 @@ export default function ProjectPage() {
     });
   };
 
-  const handleCollectionActivation = (collection: {id: string; name: string}) => {
-    setActiveCollection(collection);
+  const handleCollectionActivation = async (collection: {id: string; name: string}) => {
+    try {
+      // Update the database to activate this collection
+      const activateResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: true })
+      });
+
+      if (!activateResponse.ok) {
+        const errorData = await activateResponse.json();
+        console.error('Failed to activate collection in database:', errorData);
+        return;
+      }
+
+      console.log('Collection activated successfully in database');
+      
+      // Update local state
+      setActiveCollection(collection);
+      
+      // Refresh gallery to show updated active status
+      setGalleryRefresh(prev => prev + 1);
+    } catch (error) {
+      console.error('Error activating collection:', error);
+    }
   };
 
   const handleToggleCollectionSelection = (collectionId: string) => {

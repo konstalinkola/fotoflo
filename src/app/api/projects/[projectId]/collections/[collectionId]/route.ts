@@ -47,10 +47,35 @@ export async function PUT(
   const body = await request.json();
   
   if (body.is_active) {
-    // Use the function to ensure only one active collection per project
-    const { error } = await supabase.rpc('set_active_collection', { 
-      p_collection_id: collectionId 
-    });
+    // First, get the project_id for this collection
+    const { data: collection, error: getError } = await supabase
+      .from("collections")
+      .select("project_id")
+      .eq("id", collectionId)
+      .single();
+    
+    if (getError || !collection) {
+      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    }
+
+    // Deactivate all collections in the project
+    const { error: deactivateError } = await supabase
+      .from("collections")
+      .update({ is_active: false })
+      .eq("project_id", collection.project_id);
+    
+    if (deactivateError) {
+      return NextResponse.json({ error: deactivateError.message }, { status: 400 });
+    }
+
+    // Activate the specified collection
+    const { data, error } = await supabase
+      .from("collections")
+      .update({ is_active: true })
+      .eq("id", collectionId)
+      .select()
+      .single();
+    
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   } else {
     // Just update normally for other fields

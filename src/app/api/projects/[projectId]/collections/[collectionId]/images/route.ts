@@ -6,12 +6,17 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ projectId: string; collectionId: string }> }
 ) {
+  console.log('=== COLLECTION IMAGES API CALLED ===');
+  
   const { collectionId } = await params;
   const supabase = await createSupabaseServerClient();
   const body = await request.json();
   const { image_ids } = body; // Array of image IDs to add
   
+  console.log('Adding images to collection:', { collectionId, image_ids });
+  
   if (!Array.isArray(image_ids)) {
+    console.error('image_ids is not an array:', image_ids);
     return NextResponse.json({ error: "image_ids must be an array" }, { status: 400 });
   }
 
@@ -33,12 +38,21 @@ export async function POST(
     sort_order: nextOrder++
   }));
 
+  console.log('Insert data:', insertData);
+
   const { data, error } = await supabase
     .from("collection_images")
     .insert(insertData)
     .select();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  console.log('Insert result:', { data, error });
+
+  if (error) {
+    console.error('Failed to insert collection images:', error);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+  
+  console.log('Successfully added images to collection');
   return NextResponse.json(data);
 }
 

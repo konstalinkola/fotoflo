@@ -21,14 +21,31 @@ export async function GET(
 		return NextResponse.json({ error: "Project not found" }, { status: 404 });
 	}
 
-	// For collection projects, return the gallery URL
+	// For collection projects, return the active collection's specific URL
 	if (project.display_mode === 'collection') {
+		// Get the active collection
+		const admin = createSupabaseServiceClient();
+		const { data: activeCollection, error: collectionError } = await admin
+			.from("collections")
+			.select("id")
+			.eq("project_id", projectId)
+			.eq("is_active", true)
+			.single();
+
+		if (collectionError || !activeCollection) {
+			return NextResponse.json({ 
+				error: "No active collection found",
+				reason: "no_active_collection"
+			}, { status: 404 });
+		}
+
 		// Get the base URL from the request headers
 		const host = request.headers.get('host');
 		const protocol = request.headers.get('x-forwarded-proto') || 'http';
 		const baseUrl = `${protocol}://${host}`;
+		
 		return NextResponse.json({ 
-			url: `${baseUrl}/public/${projectId}/gallery`,
+			url: `${baseUrl}/public/${projectId}/collection/${activeCollection.id}`,
 			type: 'collection'
 		});
 	}

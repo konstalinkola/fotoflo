@@ -12,7 +12,7 @@ export async function GET(
 	
 	const { data: project, error } = await supabase
 		.from("projects")
-		.select("customization_settings")
+		.select("font_color, logo_size, logo_position_y, text_content, font_size, text_position_y, font_family, font_weight, background_color")
 		.eq("id", projectId)
 		.single();
 	
@@ -22,7 +22,20 @@ export async function GET(
 		return NextResponse.json({ error: "Project not found" }, { status: 404 });
 	}
 	
-	return NextResponse.json({ settings: project.customization_settings });
+	// Convert individual columns to the expected settings format
+	const settings = {
+		logoSize: project.logo_size || 80,
+		logoPosition: { x: 0, y: project.logo_position_y || -100 },
+		backgroundColor: project.background_color || "#f5f5f5", // Use project's background color
+		textContent: project.text_content || "",
+		textPosition: { x: 0, y: project.text_position_y || 150 },
+		textColor: project.font_color || "#333333",
+		textSize: project.font_size || 16,
+		fontFamily: project.font_family || "Inter",
+		fontWeight: project.font_weight || "400"
+	};
+	
+	return NextResponse.json({ settings });
 }
 
 export async function PUT(
@@ -56,9 +69,24 @@ export async function PUT(
 	const settings = await request.json();
 	console.log("Settings to save:", settings);
 	
+	// Convert settings to individual column format
+	const updateData = {
+		font_color: settings.textColor,
+		logo_size: settings.logoSize,
+		logo_position_y: settings.logoPosition?.y,
+		text_content: settings.textContent,
+		font_size: settings.textSize,
+		text_position_y: settings.textPosition?.y,
+		font_family: settings.fontFamily,
+		font_weight: settings.fontWeight,
+		background_color: settings.backgroundColor
+	};
+	
+	console.log("Update data:", updateData);
+	
 	const { error } = await supabase
 		.from("projects")
-		.update({ customization_settings: settings })
+		.update(updateData)
 		.eq("id", projectId);
 	
 	console.log("Update result:", error);

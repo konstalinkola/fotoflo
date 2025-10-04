@@ -19,12 +19,37 @@ export default function CollectionGalleryPage() {
 		
 		async function fetchCollection() {
 			try {
-				const res = await fetch(`/api/public/${projectId}/collection`);
-				if (res.ok) {
-					const data = await res.json();
+				console.log('Fetching collection for project:', projectId);
+				
+				// First, get the project info to verify it exists and get display mode
+				const projectRes = await fetch(`/api/projects/${projectId}`);
+				if (!projectRes.ok) {
+					setError(`Project not found: ${projectRes.status}`);
+					setLoading(false);
+					return;
+				}
+				
+				const projectData = await projectRes.json();
+				console.log('Project data:', projectData);
+				
+				if (projectData.display_mode !== 'collection') {
+					setError('This project is not in collection mode');
+					setLoading(false);
+					return;
+				}
+				
+				// Now try to get the active collection using the new gallery API
+				const galleryRes = await fetch(`/api/public/${projectId}/gallery`);
+				console.log('Gallery API response status:', galleryRes.status);
+				
+				if (galleryRes.ok) {
+					const data = await galleryRes.json();
+					console.log('Gallery data:', data);
 					setCollectionImages(data.images || []);
 				} else {
-					setError("Collection not found or not available");
+					const errorData = await galleryRes.json();
+					console.error('Gallery API error:', errorData);
+					setError(`Collection not found or not available: ${errorData.error || 'Unknown error'}`);
 				}
 			} catch (error) {
 				console.error('Error fetching collection:', error);

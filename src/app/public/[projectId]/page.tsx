@@ -62,16 +62,22 @@ export default function PublicProjectPage() {
 					return;
 				}
 				
-				// Otherwise fetch from API
+				// Fetch customization settings from API (now uses individual columns)
 				const res = await fetch(`/api/projects/${projectId}/customization`);
 				if (res.ok) {
 					const data = await res.json();
+					console.log("Customization data loaded:", data);
 					if (isMounted && data.settings) {
 						setCustomization(data.settings);
+						// Immediately update background color from settings to prevent flashing
+						if (data.settings.backgroundColor) {
+							console.log("Setting background color to:", data.settings.backgroundColor);
+							setBgColor(data.settings.backgroundColor);
+						}
 					}
 				}
-			} catch {
-				// Ignore customization errors
+			} catch (error) {
+				console.log("No customization settings found:", error);
 			}
 		}
 		
@@ -93,46 +99,46 @@ export default function PublicProjectPage() {
 			}
 		}
 
-		async function fetchCollection() {
+		async function fetchProjectInfo() {
 			try {
-				const res = await fetch(`/api/public/${projectId}/collection`);
-				if (res.ok) {
-					const data = await res.json();
-					if (isMounted) {
-						setIsCollectionMode(true);
-						setCollectionImages(data.images || []);
-						if (typeof data.project?.logo_url === "string") setLogoUrl(data.project.logo_url);
-						if (typeof data.project?.background_color === "string") setBgColor(data.project.background_color);
-						if (typeof data.project?.qr_visibility_duration === "number") setQrVisibilityDuration(data.project.qr_visibility_duration);
-						if (typeof data.project?.qr_expires_on_click === "boolean") setQrExpiresOnClick(data.project.qr_expires_on_click);
-						if (data.settings) {
-							setCustomization(data.settings);
-						}
-					}
-				} else {
-					// Project is not in collection mode, fetch normally
-					setIsCollectionMode(false);
+				// First, get project info to determine display mode
+				const projectRes = await fetch(`/api/projects/${projectId}`);
+				if (!projectRes.ok) return;
+				
+				const projectData = await projectRes.json();
+				if (!isMounted) return;
+				
+				// Set basic project info (logo and background color) for all projects
+				if (typeof projectData.logo_url === "string") setLogoUrl(projectData.logo_url);
+				// Only set background color if no customization settings exist yet
+				if (typeof projectData.background_color === "string" && !customization) {
+					setBgColor(projectData.background_color);
 				}
+				if (typeof projectData.qr_visibility_duration === "number") setQrVisibilityDuration(projectData.qr_visibility_duration);
+				if (typeof projectData.qr_expires_on_click === "boolean") setQrExpiresOnClick(projectData.qr_expires_on_click);
+				
+				// Set display mode based on project data
+				const isCollectionProject = projectData.display_mode === 'collection';
+				setIsCollectionMode(isCollectionProject);
+				
+				// If it's a collection project, we'll handle it when the QR code is clicked
+				// No need to fetch collection data here as it causes 404 errors
 			} catch (error) {
-				console.error('Error fetching collection:', error);
+				console.error('Error fetching project info:', error);
 				setIsCollectionMode(false);
 			}
 		}
 		
-		fetchCustomization();
-		fetchCollection(); // Try collection mode first
+		fetchCustomization(); // Load customization settings first
 		fetchQrUrl(); // Always fetch QR URL
+		fetchProjectInfo(); // Determine project mode (but don't override customization settings)
 		
-		// Set up polling for single image mode
-		if (!isCollectionMode) {
-			const id = setInterval(fetchQrUrl, 5000);
-			return () => {
-				isMounted = false;
-				clearInterval(id);
-			};
-		}
+		// Set up polling for both single image and collection modes
+		// This ensures QR codes stay updated when content changes
+		const id = setInterval(fetchQrUrl, 5000);
 		return () => {
 			isMounted = false;
+			clearInterval(id);
 		};
 	}, [projectId, qrUrl, isCollectionMode, isPreview, previewLogoSize, previewLogoPositionY, previewBackgroundColor, previewTextContent, previewFontSize, previewFontColor, previewTextPositionY]);
 
@@ -156,8 +162,9 @@ export default function PublicProjectPage() {
 
 	// Handle click to expire
 	const handleQrClick = () => {
-		if (isCollectionMode && collectionImages.length > 0) {
-			setShowGallery(true);
+		// For collection mode, let the QR code work naturally by navigating to the URL
+		if (isCollectionMode && qrUrl) {
+			window.open(qrUrl, '_blank');
 		} else if (qrExpiresOnClick && !hasBeenViewed) {
 			setHasBeenViewed(true);
 			setQrVisible(false);
@@ -207,13 +214,21 @@ export default function PublicProjectPage() {
 	};
 
 	// Use customization settings if available, otherwise use defaults
-	const displayBgColor = customization?.backgroundColor || bgColor;
+	// Priority: customization settings > project background color > default
+	const displayBgColor = customization?.backgroundColor || bgColor || "#f5f5f5";
 	const logoSize = customization?.logoSize || 80;
 	const logoPosition = customization?.logoPosition || { x: 0, y: -100 };
 	const textContent = customization?.textContent || "";
 	const textPosition = customization?.textPosition || { x: 0, y: 150 };
 	const textColor = customization?.textColor || "#333333";
 	const textSize = customization?.textSize || 16;
+	const fontFamily = customization?.fontFamily || "Inter";
+	const fontWeight = customization?.fontWeight || "400";
+	
+	// Debug logging
+	console.log("Final display background color:", displayBgColor);
+	console.log("Customization settings:", customization);
+	console.log("bgColor state:", bgColor);
 
 	// Collection gallery view
 	if (showGallery && isCollectionMode) {
@@ -322,70 +337,85 @@ export default function PublicProjectPage() {
 		);
 	}
 
-	// Regular QR code view (single image mode)
+	// Mobile-first QR code view with 10:16 aspect ratio
 	return (
-		<div className="min-h-screen flex items-center justify-center p-8" style={{ backgroundColor: displayBgColor }}>
-			<div className="relative flex flex-col items-center gap-6">
-				{/* Logo with custom positioning */}
-				{logoUrl && (
-					<div 
-						className="absolute"
-						style={{
-							transform: `translate(${logoPosition.x}px, ${logoPosition.y}px)`,
-							zIndex: 10
-						}}
-					>
-						<Image 
-							src={logoUrl} 
-							alt="Logo" 
-							width={logoSize} 
-							height={logoSize} 
-							className="object-contain" 
-						/>
-					</div>
-				)}
-				
-				{/* QR Code */}
-				{qrUrl && qrVisible ? (
-					<div className="relative">
-						<QRCodeCanvas 
-							value={qrUrl} 
-							size={280} 
-							includeMargin 
-							onClick={handleQrClick}
-							className={qrExpiresOnClick || isCollectionMode ? "cursor-pointer" : ""}
-						/>
-						{(qrExpiresOnClick || isCollectionMode) && (
-							<div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-600 text-center">
-								{isCollectionMode ? "Click to view gallery" : "Click to view image"}
+		<div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: displayBgColor }}>
+			{/* Mobile-optimized container with 10:16 aspect ratio */}
+			<div className="w-full max-w-sm mx-auto">
+				<div 
+					className="relative w-full bg-white rounded-2xl shadow-lg overflow-hidden"
+					style={{ 
+						aspectRatio: '10/16',
+						backgroundColor: displayBgColor 
+					}}
+				>
+					{/* Logo with custom positioning */}
+					{logoUrl && (
+						<div 
+							className="absolute"
+							style={{
+								left: '50%',
+								top: `${50 + logoPosition.y / 5}%`,
+								transform: `translate(-50%, -50%) translate(${logoPosition.x}px, 0px)`,
+								zIndex: 10
+							}}
+						>
+							<Image 
+								src={logoUrl} 
+								alt="Logo" 
+								width={logoSize} 
+								height={logoSize} 
+								className="object-contain"
+								style={{ width: 'auto', height: 'auto' }}
+							/>
+						</div>
+					)}
+					
+					{/* QR Code - centered */}
+					<div className="absolute inset-0 flex items-center justify-center">
+						{qrUrl && qrVisible ? (
+							<div className="relative">
+								<QRCodeCanvas 
+									value={qrUrl} 
+									size={200} 
+									includeMargin 
+									onClick={handleQrClick}
+									className={qrExpiresOnClick ? "cursor-pointer" : ""}
+								/>
+							</div>
+						) : qrUrl && !qrVisible ? (
+							<div className="text-gray-700 text-center">
+								<div className="text-lg font-medium mb-2">QR Code Expired</div>
+								<div className="text-sm">The QR code is no longer available</div>
+							</div>
+						) : (
+							<div className="text-gray-700 text-center">
+								{isCollectionMode ? "Waiting for collection…" : "Waiting for latest photo…"}
 							</div>
 						)}
 					</div>
-				) : qrUrl && !qrVisible ? (
-					<div className="text-gray-700 text-center">
-						<div className="text-lg font-medium mb-2">QR Code Expired</div>
-						<div className="text-sm">The QR code is no longer available</div>
-					</div>
-				) : (
-					<div className="text-gray-700">
-						{isCollectionMode ? "Waiting for collection…" : "Waiting for latest photo…"}
-					</div>
-				)}
-				
-				{/* Custom text element */}
-				{textContent && (
-					<div 
-						className="absolute"
-						style={{
-							transform: `translate(${textPosition.x}px, ${textPosition.y}px)`,
-							color: textColor,
-							fontSize: `${textSize}px`,
-							zIndex: 10
-						}}
-					>
-						{textContent}
-					</div>
-				)}
+					
+					{/* Custom text element */}
+					{textContent && (
+						<div 
+							className="absolute"
+							style={{
+								left: '50%',
+								top: `${50 + textPosition.y / 5}%`,
+								transform: `translate(-50%, -50%) translate(${textPosition.x}px, 0px)`,
+								color: textColor,
+								fontSize: `${textSize}px`,
+								fontFamily: fontFamily,
+								fontWeight: fontWeight,
+								zIndex: 10,
+								textAlign: 'center',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							{textContent}
+						</div>
+					)}
+				</div>
 			</div>
 		</div>
 	);
