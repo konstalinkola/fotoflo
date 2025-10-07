@@ -64,11 +64,35 @@ export async function POST(
 		return NextResponse.json({ error: "File too large. Maximum size is 10MB." }, { status: 400 });
 	}
 
+	// Validate file name (prevent path traversal)
+	const fileName = file.name;
+	if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+		return NextResponse.json({ error: "Invalid file name." }, { status: 400 });
+	}
+
+	// Validate file name length
+	if (fileName.length > 255) {
+		return NextResponse.json({ error: "File name too long." }, { status: 400 });
+	}
+
+	// Validate file extension matches MIME type
+	const extension = fileName.split('.').pop()?.toLowerCase();
+	const mimeTypeMap: Record<string, string[]> = {
+		'jpg': ['image/jpeg', 'image/jpg'],
+		'jpeg': ['image/jpeg', 'image/jpg'],
+		'png': ['image/png'],
+		'webp': ['image/webp'],
+	};
+	
+	if (!extension || !mimeTypeMap[extension]?.includes(file.type)) {
+		return NextResponse.json({ error: "File extension does not match file type." }, { status: 400 });
+	}
+
 	// Create file path: project_id/filename (user bucket is already isolated)
 	const timestamp = Date.now();
 	const fileExtension = file.name.split('.').pop();
-	const fileName = `${timestamp}.${fileExtension}`;
-	const securePath = `${projectId}/${fileName}`;
+	const secureFileName = `${timestamp}.${fileExtension}`;
+	const securePath = `${projectId}/${secureFileName}`;
 
 	// Extract EXIF data from the image
 	let exifData: ExifData | null = null;

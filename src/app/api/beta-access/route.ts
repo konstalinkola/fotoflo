@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, getRateLimitHeaders } from "@/lib/rate-limit";
 
-// Beta access password - in production, use environment variable
-const BETA_PASSWORD = "taika";
+// Beta access password from environment variable
+const BETA_PASSWORD = process.env.BETA_ACCESS_PASSWORD || "taika";
 
 export async function POST(request: NextRequest) {
+	// Rate limiting - 5 attempts per minute per IP
+	const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+	const rateLimitResult = rateLimit(`beta-access:${ip}`, 5, 60000);
+
+	if (!rateLimitResult.allowed) {
+		return NextResponse.json(
+			{ error: "Too many attempts. Please try again later." }, 
+			{ 
+				status: 429,
+				headers: getRateLimitHeaders(rateLimitResult)
+			}
+		);
+	}
+
 	try {
 		const { password } = await request.json();
 		

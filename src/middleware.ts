@@ -7,8 +7,6 @@ export async function middleware(request: NextRequest) {
 	const betaAccess = request.cookies.get("beta-access");
 	const supabaseAccessToken = request.cookies.get("sb-cjlhuplhgfnybjnzvctv-auth-token");
 	
-	console.log(`Middleware: ${request.nextUrl.pathname}, betaAccess: ${betaAccess?.value}, hasSupabaseToken: ${!!supabaseAccessToken}`);
-	
 	// Allow access to beta-access page, API, auth callbacks, and public pages
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
 		request.nextUrl.pathname.startsWith("/api/beta-access") ||
@@ -27,7 +25,6 @@ export async function middleware(request: NextRequest) {
 	
 	// If user has beta access cookie, allow through
 	if (betaAccess) {
-		console.log(`Middleware: Allowing access to ${request.nextUrl.pathname} - beta access cookie found`);
 		return NextResponse.next();
 	}
 	
@@ -38,7 +35,6 @@ export async function middleware(request: NextRequest) {
 			const { data: { user } } = await supabase.auth.getUser();
 			
 			if (user) {
-				console.log(`Middleware: User authenticated, setting beta access cookie for ${user.email}`);
 				const response = NextResponse.next();
 				response.cookies.set("beta-access", "true", {
 					path: "/",
@@ -50,12 +46,11 @@ export async function middleware(request: NextRequest) {
 				return response;
 			}
 		} catch (error) {
-			console.error("Middleware: Error checking Supabase auth:", error);
+			// Silently fail - user will be redirected to beta access
 		}
 	}
 	
 	// If no beta access and not authenticated, redirect to beta access page
-	console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie and not authenticated`);
 	return NextResponse.redirect(new URL("/beta-access", request.url));
 }
 
