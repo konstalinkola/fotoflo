@@ -2,12 +2,35 @@
 
 import { useState, useRef } from "react";
 
+/**
+ * Props for the FileUpload component
+ */
 interface FileUploadProps {
+	/** The ID of the project to upload files to */
 	projectId: string;
+	/** Callback function called when upload is successful */
 	onUploadSuccess?: (uploadedData?: { paths: string[], ids: string[] }) => void;
+	/** Callback function called when upload fails */
 	onUploadError?: (error: string) => void;
 }
 
+/**
+ * FileUpload component provides drag-and-drop and click-to-upload functionality
+ * for uploading images to a Fotoflo project. Supports multiple file selection
+ * and shows upload progress.
+ * 
+ * @param props - Component props
+ * @returns JSX element for file upload interface
+ * 
+ * @example
+ * ```tsx
+ * <FileUpload 
+ *   projectId="project-123"
+ *   onUploadSuccess={(data) => console.log('Uploaded:', data)}
+ *   onUploadError={(error) => console.error('Upload failed:', error)}
+ * />
+ * ```
+ */
 export default function FileUpload({ projectId, onUploadSuccess, onUploadError }: FileUploadProps) {
 	const [isDragging, setIsDragging] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);

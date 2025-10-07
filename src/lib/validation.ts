@@ -1,6 +1,31 @@
-// Enhanced request validation utilities
+/**
+ * Enhanced request validation utilities
+ * 
+ * This module provides comprehensive validation functions for user inputs,
+ * including XSS prevention, length limits, and format validation.
+ */
 import { ERRORS } from './error-handler';
 
+/**
+ * Validates and sanitizes project names
+ * 
+ * Ensures project names are safe, properly formatted, and within length limits.
+ * Prevents XSS attacks and validates against malicious content.
+ * 
+ * @param name - The project name to validate (can be any type)
+ * @returns Sanitized project name string
+ * @throws {ValidationError} When name is invalid, empty, too long, or contains malicious content
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   const validName = validateProjectName("My Photography Project");
+ *   console.log(validName); // "My Photography Project"
+ * } catch (error) {
+ *   console.error("Invalid project name:", error.message);
+ * }
+ * ```
+ */
 export function validateProjectName(name: unknown): string {
   if (!name || typeof name !== 'string') {
     throw ERRORS.VALIDATION_ERROR('Project name is required');

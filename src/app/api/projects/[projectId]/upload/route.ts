@@ -6,25 +6,72 @@ import { checkRequestSize, checkFileSize } from "@/lib/request-limits";
 import { handleApiError, ERRORS } from "@/lib/error-handler";
 import { sanitizeFileName } from "@/lib/validation";
 
+/**
+ * EXIF data extracted from uploaded images
+ */
 interface ExifData {
+	/** Original date/time when photo was taken */
 	DateTimeOriginal?: string;
+	/** Creation date from EXIF */
 	CreateDate?: string;
+	/** Modification date from EXIF */
 	ModifyDate?: string;
+	/** Camera manufacturer */
 	Make?: string;
+	/** Camera model */
 	Model?: string;
+	/** Lens model used */
 	LensModel?: string;
+	/** Focal length in mm */
 	FocalLength?: number;
+	/** Aperture (f-number) */
 	FNumber?: number;
+	/** Shutter speed/exposure time */
 	ExposureTime?: number;
+	/** ISO sensitivity */
 	ISO?: number;
+	/** Flash usage (0 = no flash, 1 = flash) */
 	Flash?: number;
+	/** Image width in pixels */
 	ImageWidth?: number;
+	/** Image height in pixels */
 	ImageHeight?: number;
+	/** GPS latitude coordinate */
 	GPSLatitude?: number;
+	/** GPS longitude coordinate */
 	GPSLongitude?: number;
+	/** GPS altitude in meters */
 	GPSAltitude?: number;
 }
 
+/**
+ * Handles file uploads to a specific project
+ * 
+ * This endpoint processes multipart/form-data uploads, extracts EXIF metadata,
+ * validates file types and sizes, and stores files in Supabase Storage.
+ * 
+ * @param request - Next.js request object containing the upload
+ * @param params - Route parameters containing projectId
+ * @returns JSON response with upload results
+ * 
+ * @throws {413} When request or file size exceeds limits
+ * @throws {400} When file type is invalid or project not found
+ * @throws {500} When upload or database operations fail
+ * 
+ * @example
+ * ```typescript
+ * const formData = new FormData();
+ * formData.append('file', imageFile);
+ * 
+ * const response = await fetch('/api/projects/project-123/upload', {
+ *   method: 'POST',
+ *   body: formData
+ * });
+ * 
+ * const result = await response.json();
+ * console.log('Uploaded:', result.uploadedFiles);
+ * ```
+ */
 export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ projectId: string }> }

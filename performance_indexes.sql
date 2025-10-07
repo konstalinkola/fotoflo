@@ -1,5 +1,4 @@
 -- Database performance optimization indexes
--- Run these in your Supabase SQL editor
 
 -- Images table indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_images_project_id ON images(project_id);
