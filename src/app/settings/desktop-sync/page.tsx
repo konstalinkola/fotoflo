@@ -161,7 +161,7 @@ export default function DesktopSyncSettingsPage() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div>
                           <h3 className="text-lg font-medium text-neutral-950 mb-2">Download Desktop Sync</h3>
-                          <p className="text-sm text-neutral-600">Download the Fotoflo Desktop Sync client for macOS. Tested and verified for reliable operation.</p>
+                          <p className="text-sm text-neutral-600">Download the Fotoflo Desktop Sync client for macOS. Standalone executables that don't require Node.js installation.</p>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,32 +169,52 @@ export default function DesktopSyncSettingsPage() {
                             <div className="flex justify-center mb-4">
                               <Laptop className="w-12 h-12 text-neutral-600" />
                             </div>
-                            <Button 
-                              size="lg" 
-                              className="flex items-center gap-2 mx-auto"
-                              onClick={() => {
-                                // Download ZIP for macOS
-                                const link = document.createElement('a');
-                                link.href = '/downloads/Fotoflo-Sync-Simple-1.0.19.zip';
-                                link.download = 'Fotoflo-Sync-Simple-1.0.19.zip';
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                toast.success('macOS app downloaded! Unzip and follow the security guide below to run');
-                              }}
-                            >
-                              <Download className="w-5 h-5" />
-                              Download Installer
-                            </Button>
+                            <div className="space-y-3">
+                              <Button 
+                                size="lg" 
+                                className="flex items-center gap-2 mx-auto w-full"
+                                onClick={() => {
+                                  // Download for Apple Silicon Macs
+                                  const link = document.createElement('a');
+                                  link.href = '/downloads/fotoflo-sync-macos-arm64.zip';
+                                  link.download = 'fotoflo-sync-macos-arm64.zip';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  toast.success('Apple Silicon version downloaded! Unzip and follow the security guide below to run');
+                                }}
+                              >
+                                <Download className="w-5 h-5" />
+                                Download for Apple Silicon (M1/M2/M3)
+                              </Button>
+                              <Button 
+                                variant="outline"
+                                size="lg" 
+                                className="flex items-center gap-2 mx-auto w-full"
+                                onClick={() => {
+                                  // Download for Intel Macs
+                                  const link = document.createElement('a');
+                                  link.href = '/downloads/fotoflo-sync-macos-x64.zip';
+                                  link.download = 'fotoflo-sync-macos-x64.zip';
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  toast.success('Intel version downloaded! Unzip and follow the security guide below to run');
+                                }}
+                              >
+                                <Download className="w-5 h-5" />
+                                Download for Intel Macs
+                              </Button>
+                            </div>
                             <div className="text-sm text-neutral-500 mt-2">
-                              Version 1.0.19 • macOS • ~70 MB • Tested & Verified
+                              Version 1.0.0 • macOS • ~20 MB • No Node.js Required
                             </div>
                           </div>
                           
                           <div className="flex items-center">
                             <Alert className="w-full">
                               <AlertDescription>
-                                <strong>Easy Setup:</strong> Download the installer, run it, and the setup wizard will guide you through configuring your sync folders. No command-line knowledge required!
+                                <strong>Easy Setup:</strong> Download the standalone executable for your Mac, unzip it, and run it directly. No Node.js installation required!
                               </AlertDescription>
                             </Alert>
                           </div>
@@ -355,14 +375,13 @@ class FotofloSyncService {
   async detectServerUrl() {
     // Priority order for server URL detection
     const candidates = [
-      'https://fotoflo.vercel.app',  // Production domain
+      'https://fotoflo.co',  // Production domain
       'http://localhost:3000',  // Development server
       'http://localhost:3001', 
       'http://localhost:3002',
       'http://localhost:3003',
       process.env.NEXT_PUBLIC_SITE_URL,
-      process.env.SERVER_URL,
-      'https://fotoflo.com'
+      process.env.SERVER_URL
     ];
 
     // Test each URL to see which one is running
@@ -395,7 +414,7 @@ class FotofloSyncService {
       }
     }
     
-    return 'https://fotoflo.vercel.app'; // Fallback
+    return 'https://fotoflo.co'; // Fallback
   }
 
   async loadAndStartSyncFolders() {
@@ -630,10 +649,10 @@ syncService.start().catch((error) => {
                           <div>
                             <h4 className="font-semibold text-lg mb-3">Step 1: Install the Desktop Client</h4>
                             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                              <p>• Download the installer for your operating system above</p>
-                              <p>• Run the installer and follow the setup wizard</p>
+                              <p>• Download the standalone executable for your Mac type above</p>
+                              <p>• Unzip the downloaded file to extract the executable</p>
                               <p>• Follow the macOS security instructions below to allow the app to run</p>
-                              <p>• The app will open a Terminal window showing sync status</p>
+                              <p>• Double-click the executable to start syncing - no installation required!</p>
                             </div>
                           </div>
 
