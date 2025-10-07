@@ -116,25 +116,25 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
   return (
     <div className={`bg-neutral-50 flex flex-col h-screen transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
       {/* Logo - restricted to top level */}
-      <div className="p-4 h-20 flex items-center justify-center">
+      <div className="p-4 h-24 flex items-center justify-center">
         <button 
           onClick={handleLogoClick}
           className="relative cursor-pointer hover:opacity-80 transition-opacity"
-          style={{ width: '120px', height: '48px' }}
+          style={{ width: '160px', height: '64px' }}
         >
           <Image
             src="/Fotoflo-logo.png"
             alt="Fotoflo"
             fill
             priority
-            sizes="120px"
+            sizes="160px"
             className="object-contain"
           />
         </button>
       </div>
 
       {/* Empty space - aligned with page header */}
-      <div className="h-32"></div>
+      <div className="h-16"></div>
 
       {/* Content - aligned with page content */}
       <div className="flex-1 p-2 space-y-2 overflow-y-auto">
