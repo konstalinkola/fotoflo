@@ -327,6 +327,7 @@ export default function DashboardPage() {
 				onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
 				user={user}
 				projects={projects}
+				supabaseClient={supabaseClient}
 			/>
 			<div className="flex-1 p-8">Loading…</div>
 		</div>
@@ -358,6 +359,7 @@ export default function DashboardPage() {
 				onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
 				user={user}
 				projects={projects}
+				supabaseClient={supabaseClient}
 			/>
 			
 			<div className="flex-1 flex flex-col">
