@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { parse } from "exifr";
+import { checkRequestSize, checkFileSize } from "@/lib/request-limits";
 
 interface ExifData {
 	DateTimeOriginal?: string;
@@ -26,6 +27,12 @@ export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
+	// Check request size
+	const sizeCheck = checkRequestSize(request);
+	if (!sizeCheck.allowed) {
+		return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
+	}
+
 	const { projectId } = await params;
 	
 	// Verify user owns this project
@@ -58,10 +65,10 @@ export async function POST(
 		return NextResponse.json({ error: "Invalid file type. Only JPEG, PNG, and WebP are allowed." }, { status: 400 });
 	}
 
-	// Validate file size (10MB max)
-	const maxSize = 10 * 1024 * 1024; // 10MB
-	if (file.size > maxSize) {
-		return NextResponse.json({ error: "File too large. Maximum size is 10MB." }, { status: 400 });
+	// Validate file size using our centralized function
+	const fileSizeCheck = checkFileSize(file);
+	if (!fileSizeCheck.allowed) {
+		return NextResponse.json({ error: fileSizeCheck.error }, { status: 400 });
 	}
 
 	// Validate file name (prevent path traversal)

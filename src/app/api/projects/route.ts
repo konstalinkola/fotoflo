@@ -1,7 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { checkRequestSize, checkJSONSize } from "@/lib/request-limits";
 
 export async function POST(request: Request) {
+	// Check request size
+	const sizeCheck = checkRequestSize(request as NextRequest);
+	if (!sizeCheck.allowed) {
+		return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
+	}
+
 	const supabase = await createSupabaseServerClient();
 	const {
 		data: { user },
@@ -10,6 +17,12 @@ export async function POST(request: Request) {
 	if (userError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
 	const body = await request.json();
+
+	// Check JSON payload size
+	const jsonCheck = checkJSONSize(body);
+	if (!jsonCheck.allowed) {
+		return NextResponse.json({ error: jsonCheck.error }, { status: 413 });
+	}
 	const { name, backgroundColor, logoUrl, storageBucket, storagePrefix } = body;
 
 	// Input validation
