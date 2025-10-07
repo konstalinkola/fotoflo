@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
 	// Check if user has beta access
 	const betaAccess = request.cookies.get("beta-access");
+	const supabaseAccessToken = request.cookies.get("sb-cjlhuplhgfnybjnzvctv-auth-token");
 	
-	console.log(`Middleware: ${request.nextUrl.pathname}, betaAccess: ${betaAccess?.value}`);
+	console.log(`Middleware: ${request.nextUrl.pathname}, betaAccess: ${betaAccess?.value}, hasSupabaseToken: ${!!supabaseAccessToken}`);
 	
 	// Allow access to beta-access page, API, auth callbacks, and public pages
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
@@ -29,8 +31,31 @@ export function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 	
-	// If no beta access, redirect to beta access page
-	console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie`);
+	// Check if user is authenticated via Supabase
+	if (supabaseAccessToken) {
+		try {
+			const supabase = await createSupabaseServerClient();
+			const { data: { user } } = await supabase.auth.getUser();
+			
+			if (user) {
+				console.log(`Middleware: User authenticated, setting beta access cookie for ${user.email}`);
+				const response = NextResponse.next();
+				response.cookies.set("beta-access", "true", {
+					path: "/",
+					maxAge: 86400, // 24 hours
+					httpOnly: false,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax"
+				});
+				return response;
+			}
+		} catch (error) {
+			console.error("Middleware: Error checking Supabase auth:", error);
+		}
+	}
+	
+	// If no beta access and not authenticated, redirect to beta access page
+	console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie and not authenticated`);
 	return NextResponse.redirect(new URL("/beta-access", request.url));
 }
 
