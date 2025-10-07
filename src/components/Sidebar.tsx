@@ -134,10 +134,10 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
       </div>
 
       {/* Empty space - aligned with page header */}
-      <div className="flex-1"></div>
+      <div className="h-32"></div>
 
       {/* Content - aligned with page content */}
-      <div className="p-2 space-y-2 overflow-y-auto">
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto">
         {/* Application Section */}
         <div className="space-y-2">
           <div className="px-2 py-1">
