@@ -76,9 +76,35 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
 
   // Handle logout
   const handleLogout = async () => {
-    if (supabaseClient) {
-      await supabaseClient.auth.signOut();
-      router.push("/login");
+    console.log("Logout clicked, supabaseClient:", !!supabaseClient);
+    
+    try {
+      if (supabaseClient) {
+        console.log("Signing out...");
+        const { error } = await supabaseClient.auth.signOut();
+        if (error) {
+          console.error("Logout error:", error);
+          alert("Logout failed: " + error.message);
+          return;
+        }
+        console.log("Sign out successful");
+        
+        // Clear beta access cookie
+        document.cookie = "beta-access=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+        console.log("Beta access cookie cleared");
+        
+        // Close the logout menu
+        setShowLogoutMenu(false);
+        
+        // Redirect to login
+        router.push("/login");
+      } else {
+        console.error("No supabaseClient available");
+        alert("Logout failed: No authentication client available");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("Logout failed: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
