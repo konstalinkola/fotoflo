@@ -41,7 +41,7 @@ export default function BetaAccessPage() {
 			<div className="max-w-md w-full space-y-8">
 				<div className="text-center">
 					<h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-						Kuvapalvelin Beta Access
+						Fotoflo Beta Access
 					</h2>
 					<p className="mt-2 text-sm text-gray-600">
 						This is a private beta. Please enter the access password to continue.

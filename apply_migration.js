@@ -1,52 +1,57 @@
-// Script to apply the customization_settings migration
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local' });
 
-// Your Supabase credentials
-const supabaseUrl = 'https://cjlhuplhgfnybjnzvctv.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbGh1cGxoZ2ZueWJqbnp2Y3R2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1ODU0MzExNiwiZXhwIjoyMDc0MTE5MTE2fQ.3nqyNCdtKqLpoELbTkl2ocP6EPOzb34-tQ3JmwT2nBg';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables');
+  process.exit(1);
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-async function applyMigration() {
+async function addCollectionIdColumn() {
   try {
-    console.log('Applying customization_settings migration...');
+    console.log('Adding collection_id column to images table...');
     
-    // Add the customization_settings column
-    const { data, error } = await supabase.rpc('exec_sql', {
-      sql: `
-        ALTER TABLE public.projects 
-        ADD COLUMN IF NOT EXISTS customization_settings JSONB;
-      `
+    // Try to add the column using a raw SQL query
+    const { data, error } = await supabase
+      .from('images')
+      .select('id')
+      .limit(1);
+
+    if (error && error.message.includes('collection_id')) {
+      console.log('Column already exists or there was an error:', error.message);
+      return;
+    }
+
+    // If we get here, the column might not exist
+    console.log('Attempting to add collection_id column...');
+    
+    // Use the REST API to execute raw SQL
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/exec_sql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'apikey': supabaseServiceKey
+      },
+      body: JSON.stringify({
+        sql: 'ALTER TABLE images ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES collections(id) ON DELETE SET NULL;'
+      })
     });
-    
-    if (error) {
-      console.error('Error applying migration:', error);
-      return;
-    }
-    
-    console.log('Migration applied successfully!');
-    
-    // Verify the column was added
-    const { data: columns, error: columnError } = await supabase
-      .from('information_schema.columns')
-      .select('column_name, data_type')
-      .eq('table_name', 'projects')
-      .eq('column_name', 'customization_settings');
-    
-    if (columnError) {
-      console.error('Error checking columns:', columnError);
-      return;
-    }
-    
-    if (columns && columns.length > 0) {
-      console.log('✅ customization_settings column exists:', columns[0]);
+
+    if (response.ok) {
+      console.log('✅ Successfully added collection_id column to images table');
     } else {
-      console.log('❌ customization_settings column not found');
+      const errorText = await response.text();
+      console.log('❌ Error adding column:', errorText);
     }
-    
+
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('❌ Error:', error.message);
   }
 }
 
-applyMigration();
+addCollectionIdColumn();

@@ -47,10 +47,11 @@ export default function Navbar() {
 					{/* Logo */}
 					<Link href="/dashboard" className="flex items-center">
 						<Image
-							src="/logo.png"
-							alt="Kuvapalvelin"
+							src="/Fotoflo-logo.png"
+							alt="Fotoflo"
 							width={48}
 							height={48}
+							priority
 							className="h-12 w-auto"
 						/>
 					</Link>

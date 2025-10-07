@@ -15,7 +15,7 @@ cp .env.local.example .env.local
 Fill:
 - NEXT_PUBLIC_SUPABASE_URL
 - NEXT_PUBLIC_SUPABASE_ANON_KEY
-- NEXT_PUBLIC_SITE_URL (e.g. http://localhost:3000)
+- NEXT_PUBLIC_SITE_URL (e.g. https://fotoflo.vercel.app)
 
 2. Database (projects table):
 Run the SQL in `supabase.sql` in your Supabase project (SQL Editor).

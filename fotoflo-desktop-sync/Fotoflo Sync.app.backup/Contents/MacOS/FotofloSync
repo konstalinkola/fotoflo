@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Simple Fotoflo Sync Launcher
+# This script launches the sync service with a user-friendly interface
+
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+RESOURCES_DIR="$APP_DIR/Contents/Resources"
+
+echo "🚀 Fotoflo Desktop Sync"
+echo "======================="
+echo ""
+
+# Check if Node.js is available in multiple locations
+NODE_PATH=""
+if command -v node &> /dev/null; then
+    NODE_PATH="node"
+elif [ -f "/usr/local/bin/node" ]; then
+    NODE_PATH="/usr/local/bin/node"
+elif [ -f "/opt/homebrew/bin/node" ]; then
+    NODE_PATH="/opt/homebrew/bin/node"
+elif [ -f "/usr/bin/node" ]; then
+    NODE_PATH="/usr/bin/node"
+fi
+
+if [ -z "$NODE_PATH" ]; then
+    echo "❌ Node.js not found in system PATH or common locations"
+    echo ""
+    echo "🔧 Solutions:"
+    echo "1. Install Node.js from https://nodejs.org"
+    echo "2. Or use Homebrew: brew install node"
+    echo ""
+    echo "💡 Node.js is required to run the Fotoflo Sync service"
+    echo ""
+    
+    # Show a dialog box
+    osascript -e 'display dialog "Node.js is required to run Fotoflo Sync.\n\nPlease install Node.js from https://nodejs.org\n\nOr use Homebrew: brew install node" buttons {"OK"} default button "OK" with title "Fotoflo Sync - Node.js Required"'
+    exit 1
+fi
+
+echo "✅ Node.js found at: $NODE_PATH"
+echo "🚀 Starting Fotoflo Sync service..."
+echo ""
+
+# Change to the resources directory
+cd "$RESOURCES_DIR"
+
+# Check if sync script exists
+SYNC_SCRIPT="$RESOURCES_DIR/sync-service.js"
+if [ ! -f "$SYNC_SCRIPT" ]; then
+    echo "❌ Sync service script not found at: $SYNC_SCRIPT"
+    echo "💡 Please make sure the app bundle is complete"
+    echo ""
+    
+    # Show a dialog box
+    osascript -e 'display dialog "Sync service script not found.\n\nPlease make sure the app bundle is complete." buttons {"OK"} default button "OK" with title "Fotoflo Sync - Missing Script"'
+    exit 1
+fi
+
+echo "📝 Starting sync service: $SYNC_SCRIPT"
+echo "🌐 Server will auto-detect the correct URL"
+echo "🛑 Press Ctrl+C to stop"
+echo ""
+
+# Create a temporary script to run the sync service in a new Terminal window
+TEMP_SCRIPT="/tmp/fotoflo-sync-$$.sh"
+cat > "$TEMP_SCRIPT" << EOF
+#!/bin/bash
+echo "🚀 Fotoflo Desktop Sync"
+echo "======================="
+echo ""
+echo "✅ Node.js found at: $NODE_PATH"
+echo "🚀 Starting Fotoflo Sync service..."
+echo ""
+echo "📝 Starting sync service: $SYNC_SCRIPT"
+echo "🌐 Server will auto-detect the correct URL"
+echo "🛑 Press Ctrl+C to stop"
+echo ""
+echo "💡 To configure sync folders:"
+echo "   1. Go to your Fotoflo project settings"
+echo "   2. Open the \"Desktop Sync\" tab"
+echo "   3. Add folders to sync"
+echo ""
+
+cd "$RESOURCES_DIR"
+exec "$NODE_PATH" "$SYNC_SCRIPT"
+EOF
+
+chmod +x "$TEMP_SCRIPT"
+
+# Show a dialog with instructions
+osascript -e 'display dialog "Fotoflo Sync is starting...\n\nA new Terminal window will open showing the sync status.\n\nTo stop the sync, close the Terminal window or press Ctrl+C." buttons {"OK"} default button "OK" with title "Fotoflo Sync - Starting"'
+
+# Launch the sync service in a new Terminal window
+osascript -e "tell application \"Terminal\" to do script \"$TEMP_SCRIPT\""
+
+# Clean up the temporary script after a delay
+(sleep 10 && rm -f "$TEMP_SCRIPT") &
+
+exit 0

@@ -1,0 +1,45 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- S-shaped logo with gradient segments -->
+  
+  <!-- Top segment - curves down and right -->
+  <defs>
+    <linearGradient id="topGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#e8d5ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6b46c1;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="middleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#eab308;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6b46c1;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="bottomGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6b46c1;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#eab308;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Top segment - white to lavender to purple, curves down right -->
+  <path d="M 8 16 Q 20 8 32 16 Q 44 24 52 20" 
+        stroke="url(#topGradient)" 
+        stroke-width="12" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Middle segment - orange to yellow to purple, curves up right -->
+  <path d="M 12 32 Q 24 40 36 32 Q 48 24 56 28" 
+        stroke="url(#middleGradient)" 
+        stroke-width="12" 
+        fill="none" 
+        stroke-linecap="round"/>
+  
+  <!-- Bottom segment - purple to grey-purple to yellow, curves down right -->
+  <path d="M 8 48 Q 20 56 32 48 Q 44 40 52 44" 
+        stroke="url(#bottomGradient)" 
+        stroke-width="12" 
+        fill="none" 
+        stroke-linecap="round"/>
+</svg>

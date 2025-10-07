@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ChevronsUpDown,
   MoreHorizontal,
-  LogOut
+  LogOut,
+  Monitor
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -70,6 +71,7 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
   // Determine active states
   const isDashboardActive = pathname === '/dashboard';
   const isProjectPage = pathname.startsWith('/project/');
+  const isDesktopSyncActive = pathname === '/settings/desktop-sync';
   const currentProjectId = isProjectPage ? pathname.split('/project/')[1] : null;
 
   // Handle logout
@@ -95,9 +97,11 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
             className="relative w-32 h-32 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <Image
-              src="/logo.png"
-              alt="Fotoflow"
+              src="/Fotoflo-logo.png"
+              alt="Fotoflo"
               fill
+              priority
+              sizes="128px"
               className="object-contain"
             />
           </button>
@@ -179,6 +183,23 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
                   )}
                 </div>
               )}
+            </div>
+            
+            {/* Desktop Sync Link */}
+            <div className="space-y-1">
+              <Link href="/settings/desktop-sync">
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-start h-8 px-2 hover:bg-neutral-200 ${
+                    isDesktopSyncActive ? 'bg-neutral-100' : ''
+                  }`}
+                >
+                  <Monitor className="w-4 h-4 mr-2" />
+                  {!collapsed && (
+                    <span className="flex-1 text-left">Desktop sync</span>
+                  )}
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

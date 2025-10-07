@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Extract and run the installer
+TEMP_DIR=$(mktemp -d)
+cd "$TEMP_DIR"
+
+# Find the installer script in the same directory as this file
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cp -r "$SCRIPT_DIR/Fotoflo-Sync-Package"/* .
+
+# Run the installer
+./install.sh
+
+# Cleanup
+cd /
+rm -rf "$TEMP_DIR"

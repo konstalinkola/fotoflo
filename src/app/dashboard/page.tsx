@@ -447,6 +447,7 @@ export default function DashboardPage() {
 														alt={`${latestProject.name} collection cover`}
 														width={325}
 														height={325}
+														priority
 														className="w-full h-full object-cover"
 													/>
 												) : latestProject.latest_image_url ? (
@@ -455,6 +456,7 @@ export default function DashboardPage() {
 														alt={latestProject.name}
 														width={325}
 														height={325}
+														priority
 														className="w-full h-full object-cover"
 													/>
 												) : latestProject.logo_url ? (
@@ -553,23 +555,8 @@ export default function DashboardPage() {
 													<TableCell>
 														<button
 															onClick={() => navigateToProject(project.id)}
-															className="flex items-center gap-3 hover:bg-neutral-50 p-1 -m-1 rounded cursor-pointer w-full text-left"
+															className="hover:bg-neutral-50 p-1 -m-1 rounded cursor-pointer w-full text-left"
 														>
-															{project.logo_url ? (
-																<Image 
-																	src={project.logo_url} 
-																	alt={project.name}
-																	width={24}
-																	height={24}
-																	className="w-6 h-6 object-cover rounded"
-																/>
-															) : (
-																<div className="w-6 h-6 bg-neutral-200 rounded flex items-center justify-center">
-																	<span className="text-xs font-medium text-neutral-500">
-																		{project.name?.charAt(0)?.toUpperCase() || 'P'}
-																	</span>
-																</div>
-															)}
 															<span className="font-medium">{project.name}</span>
 														</button>
 													</TableCell>

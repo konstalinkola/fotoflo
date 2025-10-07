@@ -22,6 +22,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DesktopSync from "@/components/DesktopSync";
 
 interface Project {
   id: string;
@@ -374,7 +376,14 @@ export default function ProjectSettingsPage() {
         {/* Content */}
         <div className="flex-1 overflow-auto">
           <div className="p-6">
-          <div className="w-full max-w-none space-y-8">
+            <Tabs defaultValue="general" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-8">
+                <TabsTrigger value="general">General Settings</TabsTrigger>
+                <TabsTrigger value="desktop-sync">Desktop Sync</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="general" className="space-y-8">
+                <div className="w-full max-w-none space-y-8">
             {/* Project Information */}
             <Card>
               <CardContent className="p-6">
@@ -464,7 +473,7 @@ export default function ProjectSettingsPage() {
                         />
                       </div>
                       <p className="text-sm text-neutral-600 mb-4">
-                        Your photos are accessed via a QR code on your project&apos;s public page.
+                        Your photos are accessed via a QR code on your project's public page.
                       </p>
                       
                       {/* Sub-options for QR Code Mode */}
@@ -655,8 +664,13 @@ export default function ProjectSettingsPage() {
                 </div>
               </CardContent>
             </Card>
-
-          </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="desktop-sync">
+                <DesktopSync projectId={projectId} projectName={project?.name || "Unknown Project"} />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>

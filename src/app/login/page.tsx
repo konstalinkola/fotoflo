@@ -36,7 +36,7 @@ export default function LoginPage() {
 				const { error } = await supabase.auth.signInWithOAuth({
 					provider: "google",
 					options: {
-						redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+						redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://fotoflo.vercel.app'}/auth/callback`,
 						scopes: "email profile openid",
 					},
 				});
@@ -52,7 +52,7 @@ export default function LoginPage() {
 			const { error } = await supabase.auth.signInWithOAuth({
 				provider: "apple",
 				options: {
-					redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+					redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://fotoflo.vercel.app'}/auth/callback`,
 				},
 			});
 			if (error) alert(error.message);
@@ -359,9 +359,11 @@ export default function LoginPage() {
 				<div className="flex flex-col gap-[34px] items-end w-[471px]">
 					<div className="aspect-[587/120] w-full relative">
 						<Image
-							src="/logo.png"
-							alt="Kuvapalvelin"
+							src="/Fotoflo-logo.png"
+							alt="Fotoflo"
 							fill
+							priority
+							sizes="471px"
 							className="object-contain"
 						/>
 					</div>

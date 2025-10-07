@@ -1,0 +1,27 @@
+{
+  "name": "fotoflo-sync-standalone",
+  "version": "1.0.0",
+  "description": "Fotoflo Desktop Sync - Standalone Executable",
+  "main": "standalone-launcher.js",
+  "bin": {
+    "fotoflo-sync": "./standalone-launcher.js"
+  },
+  "pkg": {
+    "scripts": [
+      "standalone-launcher.js",
+      "sync-service.js"
+    ],
+    "assets": [
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node18-macos-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "form-data": "^4.0.0",
+    "node-fetch": "^2.6.7"
+  }
+}
