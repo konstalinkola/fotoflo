@@ -1,62 +1,64 @@
 import { NextResponse, NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { checkRequestSize, checkJSONSize } from "@/lib/request-limits";
+import { handleApiError, ERRORS } from "@/lib/error-handler";
+import { validateProjectName, validateStorageBucket, validateUrl, validateColor } from "@/lib/validation";
 
 export async function POST(request: Request) {
-	// Check request size
-	const sizeCheck = checkRequestSize(request as NextRequest);
-	if (!sizeCheck.allowed) {
-		return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
-	}
+	try {
+		// Check request size
+		const sizeCheck = checkRequestSize(request as NextRequest);
+		if (!sizeCheck.allowed) {
+			return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
+		}
 
-	const supabase = await createSupabaseServerClient();
-	const {
-		data: { user },
-		error: userError,
-	} = await supabase.auth.getUser();
-	if (userError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		const supabase = await createSupabaseServerClient();
+		const {
+			data: { user },
+			error: userError,
+		} = await supabase.auth.getUser();
+		if (userError || !user) throw ERRORS.UNAUTHORIZED();
 
-	const body = await request.json();
+		const body = await request.json();
 
-	// Check JSON payload size
-	const jsonCheck = checkJSONSize(body);
-	if (!jsonCheck.allowed) {
-		return NextResponse.json({ error: jsonCheck.error }, { status: 413 });
-	}
-	const { name, backgroundColor, logoUrl, storageBucket, storagePrefix } = body;
+		// Check JSON payload size
+		const jsonCheck = checkJSONSize(body);
+		if (!jsonCheck.allowed) {
+			return NextResponse.json({ error: jsonCheck.error }, { status: 413 });
+		}
 
-	// Input validation
-	if (!name || typeof name !== 'string' || name.trim().length === 0) {
-		return NextResponse.json({ error: "Project name is required" }, { status: 400 });
-	}
-	if (name.length > 100) {
-		return NextResponse.json({ error: "Project name must be less than 100 characters" }, { status: 400 });
-	}
-	if (backgroundColor && typeof backgroundColor !== 'string') {
-		return NextResponse.json({ error: "Invalid background color" }, { status: 400 });
-	}
-	if (logoUrl && (typeof logoUrl !== 'string' || !logoUrl.startsWith('http'))) {
-		return NextResponse.json({ error: "Invalid logo URL" }, { status: 400 });
-	}
-	if (!storageBucket || typeof storageBucket !== 'string' || storageBucket.trim().length === 0) {
-		return NextResponse.json({ error: "Storage bucket is required" }, { status: 400 });
-	}
-	if (storagePrefix && typeof storagePrefix !== 'string') {
-		return NextResponse.json({ error: "Invalid storage prefix" }, { status: 400 });
-	}
-	const { data, error } = await supabase
-		.from("projects")
-		.insert({
-			name,
-			background_color: backgroundColor,
-			logo_url: logoUrl,
-			storage_bucket: storageBucket,
-			storage_prefix: storagePrefix,
-			owner: user.id,
-		})
-		.select("id")
-		.single();
+		const { name, backgroundColor, logoUrl, storageBucket, storagePrefix } = body;
 
-	if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-	return NextResponse.json({ id: data.id });
+		// Enhanced input validation
+		const validatedName = validateProjectName(name);
+		const validatedStorageBucket = validateStorageBucket(storageBucket);
+		const validatedBackgroundColor = validateColor(backgroundColor, 'Background color');
+		const validatedLogoUrl = validateUrl(logoUrl, 'Logo URL');
+
+		// Validate storage prefix if provided
+		if (storagePrefix && typeof storagePrefix !== 'string') {
+			throw ERRORS.VALIDATION_ERROR('Storage prefix must be a string');
+		}
+		const { data, error } = await supabase
+			.from("projects")
+			.insert({
+				name: validatedName,
+				background_color: validatedBackgroundColor,
+				logo_url: validatedLogoUrl,
+				storage_bucket: validatedStorageBucket,
+				storage_prefix: storagePrefix || null,
+				owner: user.id,
+			})
+			.select("id")
+			.single();
+
+		if (error) {
+			console.error('Database error creating project:', error);
+			throw ERRORS.VALIDATION_ERROR(`Failed to create project: ${error.message}`);
+		}
+
+		return NextResponse.json({ id: data.id });
+	} catch (error) {
+		return handleApiError(error, '/api/projects');
+	}
 }

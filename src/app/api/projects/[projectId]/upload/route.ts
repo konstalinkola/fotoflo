@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { parse } from "exifr";
 import { checkRequestSize, checkFileSize } from "@/lib/request-limits";
+import { handleApiError, ERRORS } from "@/lib/error-handler";
+import { sanitizeFileName } from "@/lib/validation";
 
 interface ExifData {
 	DateTimeOriginal?: string;
@@ -27,18 +29,19 @@ export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
-	// Check request size
-	const sizeCheck = checkRequestSize(request);
-	if (!sizeCheck.allowed) {
-		return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
-	}
+	try {
+		// Check request size
+		const sizeCheck = checkRequestSize(request);
+		if (!sizeCheck.allowed) {
+			return NextResponse.json({ error: sizeCheck.error }, { status: 413 });
+		}
 
-	const { projectId } = await params;
+		const { projectId } = await params;
 	
-	// Verify user owns this project
-	const supabase = await createSupabaseServerClient();
-	const { data: { user } } = await supabase.auth.getUser();
-	if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		// Verify user owns this project
+		const supabase = await createSupabaseServerClient();
+		const { data: { user } } = await supabase.auth.getUser();
+		if (!user) throw ERRORS.UNAUTHORIZED();
 
 	const { data: project, error: projectError } = await supabase
 		.from("projects")
@@ -71,19 +74,14 @@ export async function POST(
 		return NextResponse.json({ error: fileSizeCheck.error }, { status: 400 });
 	}
 
-	// Validate file name (prevent path traversal)
-	const fileName = file.name;
-	if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
-		return NextResponse.json({ error: "Invalid file name." }, { status: 400 });
-	}
+		// Sanitize and validate file name
+		const sanitizedFileName = sanitizeFileName(file.name);
+		if (!sanitizedFileName) {
+			throw ERRORS.VALIDATION_ERROR('Invalid file name');
+		}
 
-	// Validate file name length
-	if (fileName.length > 255) {
-		return NextResponse.json({ error: "File name too long." }, { status: 400 });
-	}
-
-	// Validate file extension matches MIME type
-	const extension = fileName.split('.').pop()?.toLowerCase();
+		// Validate file extension matches MIME type
+		const extension = sanitizedFileName.split('.').pop()?.toLowerCase();
 	const mimeTypeMap: Record<string, string[]> = {
 		'jpg': ['image/jpeg', 'image/jpg'],
 		'jpeg': ['image/jpeg', 'image/jpg'],
@@ -157,7 +155,7 @@ export async function POST(
 		const imageMetadata = {
 			project_id: projectId,
 			storage_path: data.path,
-			file_name: fileName,
+			file_name: sanitizedFileName,
 			file_size: file.size,
 			file_type: file.type,
 		capture_time: exifData?.DateTimeOriginal || exifData?.CreateDate || exifData?.ModifyDate || null,
@@ -205,14 +203,17 @@ export async function POST(
 			imageId: imageId,
 			message: "File uploaded successfully" 
 		});
-	} catch (metadataError) {
-		console.error('Error processing image metadata:', metadataError);
-		// Don't fail the upload if metadata processing fails
-		return NextResponse.json({ 
-			success: true, 
-			path: data.path,
-			imageId: null,
-			message: "File uploaded successfully" 
-		});
+		} catch (metadataError) {
+			console.error('Error processing image metadata:', metadataError);
+			// Don't fail the upload if metadata processing fails
+			return NextResponse.json({ 
+				success: true, 
+				path: data.path,
+				imageId: null,
+				message: "File uploaded successfully" 
+			});
+		}
+	} catch (error) {
+		return handleApiError(error, '/api/projects/[projectId]/upload');
 	}
 }
