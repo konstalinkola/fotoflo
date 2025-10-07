@@ -54,9 +54,13 @@ export async function middleware(request: NextRequest) {
 		}
 	}
 	
+	// TEMPORARY: Allow all access for testing
+	console.log(`Middleware: TEMPORARILY ALLOWING ACCESS to ${request.nextUrl.pathname} - beta check disabled for testing`);
+	return NextResponse.next();
+	
 	// If no beta access and not authenticated, redirect to beta access page
-	console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie and not authenticated`);
-	return NextResponse.redirect(new URL("/beta-access", request.url));
+	// console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie and not authenticated`);
+	// return NextResponse.redirect(new URL("/beta-access", request.url));
 }
 
 export const config = {
