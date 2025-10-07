@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
 	const { searchParams, origin } = new URL(request.url);
 	const code = searchParams.get("code");
-	const redirect = searchParams.get("redirect") || "/dashboard";
+	const redirect = "/dashboard"; // Always redirect to dashboard for cleaner UX
 
 	if (code) {
 		const supabase = await createSupabaseServerClient();
