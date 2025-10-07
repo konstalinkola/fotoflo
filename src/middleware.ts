@@ -5,10 +5,11 @@ export function middleware(request: NextRequest) {
 	// Check if user has beta access
 	const betaAccess = request.cookies.get("beta-access");
 	
-	// Allow access to beta-access page, API, and public pages
+	// Allow access to beta-access page, API, auth callbacks, and public pages
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
 		request.nextUrl.pathname.startsWith("/api/beta-access") ||
 		request.nextUrl.pathname.startsWith("/api/") ||
+		request.nextUrl.pathname.startsWith("/auth/") ||
 		request.nextUrl.pathname.startsWith("/public/")) {
 		return NextResponse.next();
 	}
