@@ -96,8 +96,8 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
         // Close the logout menu
         setShowLogoutMenu(false);
         
-        // Redirect to login
-        router.push("/login");
+        // Force redirect to login (use window.location for guaranteed redirect)
+        window.location.href = "/login";
       } else {
         console.error("No supabaseClient available");
         alert("Logout failed: No authentication client available");
@@ -120,7 +120,8 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
         <div className="flex items-center justify-center">
           <button 
             onClick={handleLogoClick}
-            className="relative w-[217px] h-[217px] cursor-pointer hover:opacity-80 transition-opacity"
+            className="relative cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ width: '217px', height: '217px' }}
           >
             <Image
               src="/Fotoflo-logo.png"
