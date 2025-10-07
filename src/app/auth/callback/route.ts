@@ -12,15 +12,18 @@ export async function GET(request: Request) {
 		
 		if (data.user && !error) {
 			// User successfully authenticated - grant beta access
+			console.log("Auth successful, setting beta access cookie for user:", data.user.email);
 			const response = NextResponse.redirect(new URL(redirect, origin));
 			response.cookies.set("beta-access", "true", {
 				path: "/",
 				maxAge: 86400, // 24 hours
-				httpOnly: true,
+				httpOnly: false, // Changed to false so it can be read by middleware
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax"
 			});
 			return response;
+		} else {
+			console.error("Auth failed:", error);
 		}
 	}
 
