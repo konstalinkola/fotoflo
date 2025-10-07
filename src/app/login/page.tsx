@@ -89,7 +89,8 @@ export default function LoginPage() {
 				}
 			} else {
 				console.log("Sign in successful:", data);
-				// Redirect to dashboard on success
+				// Set beta access cookie and redirect to dashboard
+				document.cookie = "beta-access=true; path=/; max-age=86400"; // 24 hours
 				window.location.href = "/dashboard";
 			}
 		} catch (err) {
