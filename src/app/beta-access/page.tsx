@@ -23,8 +23,8 @@ export default function BetaAccessPage() {
 
 			if (response.ok) {
 				// Set beta access cookie and redirect to login
-				document.cookie = "beta-access=true; path=/; max-age=86400"; // 24 hours
-				router.push("/login");
+				document.cookie = "beta-access=true; path=/; max-age=86400; SameSite=Lax"; // 24 hours
+				window.location.href = "/login";
 			} else {
 				const data = await response.json();
 				setError(data.error || "Invalid password");
