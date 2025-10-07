@@ -115,28 +115,29 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
 
   return (
     <div className={`bg-neutral-50 flex flex-col h-screen transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
-      {/* Logo */}
-      <div className="p-4">
-        <div className="flex items-center justify-center">
-          <button 
-            onClick={handleLogoClick}
-            className="relative cursor-pointer hover:opacity-80 transition-opacity"
-            style={{ width: '217px', height: '217px' }}
-          >
-            <Image
-              src="/Fotoflo-logo.png"
-              alt="Fotoflo"
-              fill
-              priority
-              sizes="217px"
-              className="object-contain"
-            />
-          </button>
-        </div>
+      {/* Logo - restricted to top level */}
+      <div className="p-4 h-20 flex items-center justify-center">
+        <button 
+          onClick={handleLogoClick}
+          className="relative cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ width: '120px', height: '48px' }}
+        >
+          <Image
+            src="/Fotoflo-logo.png"
+            alt="Fotoflo"
+            fill
+            priority
+            sizes="120px"
+            className="object-contain"
+          />
+        </button>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 p-2 space-y-2 overflow-y-auto">
+      {/* Empty space - aligned with page header */}
+      <div className="flex-1"></div>
+
+      {/* Content - aligned with page content */}
+      <div className="p-2 space-y-2 overflow-y-auto">
         {/* Application Section */}
         <div className="space-y-2">
           <div className="px-2 py-1">
