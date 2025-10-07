@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
 	// Check if user has beta access
 	const betaAccess = request.cookies.get("beta-access");
+	
+	console.log(`Middleware: ${request.nextUrl.pathname}, betaAccess: ${betaAccess?.value}`);
 	
 	// Allow access to beta-access page, API, auth callbacks, and public pages
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
@@ -24,27 +25,12 @@ export async function middleware(request: NextRequest) {
 	
 	// If user has beta access cookie, allow through
 	if (betaAccess) {
+		console.log(`Middleware: Allowing access to ${request.nextUrl.pathname} - beta access cookie found`);
 		return NextResponse.next();
 	}
 	
-	// Check if user is authenticated via Supabase session
-	const supabase = await createSupabaseServerClient();
-	const { data: { user } } = await supabase.auth.getUser();
-	
-	// If user is authenticated but no beta access cookie, grant it
-	if (user) {
-		const response = NextResponse.next();
-		response.cookies.set("beta-access", "true", {
-			path: "/",
-			maxAge: 86400, // 24 hours
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "lax"
-		});
-		return response;
-	}
-	
-	// If no beta access and not authenticated, redirect to beta access page
+	// If no beta access, redirect to beta access page
+	console.log(`Middleware: Redirecting ${request.nextUrl.pathname} to beta-access - no beta cookie`);
 	return NextResponse.redirect(new URL("/beta-access", request.url));
 }
 
