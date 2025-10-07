@@ -120,14 +120,14 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
         <div className="flex items-center justify-center">
           <button 
             onClick={handleLogoClick}
-            className="relative w-32 h-32 cursor-pointer hover:opacity-80 transition-opacity"
+            className="relative w-[217px] h-[217px] cursor-pointer hover:opacity-80 transition-opacity"
           >
             <Image
               src="/Fotoflo-logo.png"
               alt="Fotoflo"
               fill
               priority
-              sizes="128px"
+              sizes="217px"
               className="object-contain"
             />
           </button>
