@@ -39,14 +39,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
 interface Project {
 	id: string;
@@ -515,9 +507,9 @@ export default function DashboardPage() {
 								</div>
 
 								{/* Table */}
-								<div className="border border-neutral-200 rounded-lg">
+								<div className="border border-neutral-200 rounded-lg max-h-[400px] overflow-y-auto">
 									<Table>
-										<TableHeader>
+										<TableHeader className="sticky top-0 bg-white z-10">
 											<TableRow>
 												<TableHead className="w-10">
 													<input 
@@ -601,31 +593,6 @@ export default function DashboardPage() {
 									</Table>
 								</div>
 
-								{/* Pagination */}
-								<div className="flex justify-end">
-									<Pagination>
-										<PaginationContent>
-											<PaginationItem>
-												<PaginationPrevious href="#" />
-											</PaginationItem>
-											<PaginationItem>
-												<PaginationLink href="#">1</PaginationLink>
-											</PaginationItem>
-											<PaginationItem>
-												<PaginationLink href="#" isActive>2</PaginationLink>
-											</PaginationItem>
-											<PaginationItem>
-												<PaginationLink href="#">3</PaginationLink>
-											</PaginationItem>
-											<PaginationItem>
-												<span className="px-3 py-2">...</span>
-											</PaginationItem>
-											<PaginationItem>
-												<PaginationNext href="#" />
-											</PaginationItem>
-										</PaginationContent>
-									</Pagination>
-								</div>
 							</div>
 						</div>
 					</div>
