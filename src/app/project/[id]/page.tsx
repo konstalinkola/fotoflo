@@ -149,15 +149,21 @@ export default function ProjectPage() {
     }
   }, [displayMode, allImages.length, activeCollection]);
 
-  // Auto-refresh gallery every 10 seconds to catch desktop sync uploads
+  // Auto-refresh every 10 seconds to catch desktop sync uploads
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log('🔄 Auto-refreshing gallery to check for new images...');
-      setGalleryRefresh(prev => prev + 1);
+      if (displayMode === 'collection') {
+        console.log('🔄 Auto-refreshing New Collection to check for new images...');
+        // For collection mode, refresh the collection images
+        setGalleryRefresh(prev => prev + 1);
+      } else {
+        console.log('🔄 Auto-refreshing gallery to check for new images...');
+        setGalleryRefresh(prev => prev + 1);
+      }
     }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [displayMode]);
 
   const fetchLatestCollection = async () => {
     if (!projectId) return;
@@ -432,10 +438,20 @@ export default function ProjectPage() {
     if (!projectId) return;
     
     try {
-      const response = await fetch(`/api/projects/${projectId}/images`);
-      if (response.ok) {
-        const data = await response.json();
-        setAllImages(data.images || []);
+      if (displayMode === 'collection') {
+        // For collection mode, fetch only images from "New Collection" (collection_number: 1)
+        const response = await fetch(`/api/projects/${projectId}/collections/1/images`);
+        if (response.ok) {
+          const data = await response.json();
+          setAllImages(data.images || []);
+        }
+      } else {
+        // For single mode, fetch all images
+        const response = await fetch(`/api/projects/${projectId}/images`);
+        if (response.ok) {
+          const data = await response.json();
+          setAllImages(data.images || []);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
