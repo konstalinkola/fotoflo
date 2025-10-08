@@ -16,8 +16,8 @@ export async function GET(request: Request) {
 			
 			if (data.user && !error) {
 				console.log("Password recovery successful for user:", data.user.email);
-				// Redirect to a password reset page or dashboard with a message
-				const response = NextResponse.redirect(new URL("/dashboard?message=password-reset", origin));
+				// Redirect to a password reset page where user can set new password
+				const response = NextResponse.redirect(new URL("/reset-password", origin));
 				response.cookies.set("beta-access", "true", {
 					path: "/",
 					maxAge: 86400, // 24 hours
