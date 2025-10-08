@@ -4,6 +4,31 @@ import { checkRequestSize, checkJSONSize } from "@/lib/request-limits";
 import { handleApiError, ERRORS } from "@/lib/error-handler";
 import { validateProjectName, validateStorageBucket, validateUrl, validateColor } from "@/lib/validation";
 
+export async function GET(request: Request) {
+	try {
+		const supabase = await createSupabaseServerClient();
+		
+		// This will work with both session cookies AND Bearer tokens
+		const { data: { user }, error: userError } = await supabase.auth.getUser();
+		if (userError || !user) throw ERRORS.UNAUTHORIZED();
+		
+		const { data: projects, error } = await supabase
+			.from("projects")
+			.select("id, name, display_mode, storage_bucket, storage_prefix, created_at")
+			.eq("owner", user.id)
+			.order("created_at", { ascending: false });
+		
+		if (error) {
+			console.error('Error fetching projects:', error);
+			throw ERRORS.VALIDATION_ERROR(`Failed to fetch projects: ${error.message}`);
+		}
+		
+		return NextResponse.json(projects);
+	} catch (error) {
+		return handleApiError(error, '/api/projects');
+	}
+}
+
 export async function POST(request: Request) {
 	try {
 		// Check request size
