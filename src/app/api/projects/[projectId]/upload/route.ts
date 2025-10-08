@@ -273,7 +273,10 @@ export async function POST(
 		}
 
 		// For collection projects, automatically add image to "New Collection"
+		console.log('Project display mode:', project.display_mode, 'Image ID:', imageId);
+		
 		if (project.display_mode === 'collection' && imageId) {
+			console.log('Processing collection project - adding image to New Collection');
 			try {
 				// Check if "New Collection" exists, create if not
 				const { data: newCollection, error: collectionError } = await supabase
@@ -283,9 +286,12 @@ export async function POST(
 					.eq("collection_number", 1)
 					.single();
 
+				console.log('Existing collection check:', { newCollection, collectionError });
+
 				let finalCollection = newCollection;
 				
 				if (collectionError || !newCollection) {
+					console.log('Creating New Collection (collection number 1)');
 					// Create "New Collection" (collection number 1)
 					const { data: createdCollection, error: createError } = await supabase
 						.from("collections")
@@ -300,11 +306,14 @@ export async function POST(
 						console.error('Failed to create New Collection:', createError);
 					} else {
 						finalCollection = createdCollection;
-						console.log('Created New Collection with ID:', finalCollection.id);
+						console.log('✅ Created New Collection with ID:', finalCollection.id);
 					}
+				} else {
+					console.log('✅ Using existing New Collection with ID:', finalCollection.id);
 				}
 
 				if (finalCollection) {
+					console.log('Adding image to collection:', { collectionId: finalCollection.id, imageId });
 					// Add image to the collection
 					const { error: addError } = await supabase
 						.from("collection_images")
@@ -315,15 +324,19 @@ export async function POST(
 						});
 
 					if (addError) {
-						console.error('Failed to add image to collection:', addError);
+						console.error('❌ Failed to add image to collection:', addError);
 					} else {
-						console.log('Successfully added image to New Collection');
+						console.log('✅ Successfully added image to New Collection');
 					}
+				} else {
+					console.error('❌ No collection available to add image to');
 				}
 			} catch (collectionError) {
-				console.error('Error handling collection assignment:', collectionError);
+				console.error('❌ Error handling collection assignment:', collectionError);
 				// Don't fail the upload if collection assignment fails
 			}
+		} else {
+			console.log('Skipping collection assignment - display_mode:', project.display_mode, 'imageId:', imageId);
 		}
 
 		// Return both path and image ID if available
