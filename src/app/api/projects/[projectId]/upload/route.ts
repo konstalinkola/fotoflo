@@ -272,27 +272,28 @@ export async function POST(
 			console.log('Successfully saved image metadata with ID:', imageId);
 		}
 
-		// For collection projects, automatically add image to "New Collection"
+		// For collection projects, create or use a current collection
 		console.log('Project display mode:', project.display_mode, 'Image ID:', imageId);
 		
 		if (project.display_mode === 'collection' && imageId) {
-			console.log('Processing collection project - adding image to New Collection');
+			console.log('Processing collection project - finding or creating collection');
 			try {
-				// Check if "New Collection" exists, create if not
-				const { data: newCollection, error: collectionError } = await supabase
+				// First, try to find an existing "New Collection" (collection_number: 1)
+				// This represents the current batch of uploads
+				const { data: currentCollection, error: collectionError } = await supabase
 					.from("collections")
 					.select("id")
 					.eq("project_id", projectId)
 					.eq("collection_number", 1)
 					.single();
 
-				console.log('Existing collection check:', { newCollection, collectionError });
+				console.log('Current collection check:', { currentCollection, collectionError });
 
-				let finalCollection = newCollection;
+				let finalCollection = currentCollection;
 				
-				if (collectionError || !newCollection) {
-					console.log('Creating New Collection (collection number 1)');
-					// Create "New Collection" (collection number 1)
+				if (collectionError || !currentCollection) {
+					console.log('Creating New Collection (collection number 1) for current batch');
+					// Create "New Collection" (collection number 1) for current upload batch
 					const { data: createdCollection, error: createError } = await supabase
 						.from("collections")
 						.insert({
