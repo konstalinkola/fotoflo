@@ -49,71 +49,77 @@ export async function GET(
 			return NextResponse.json({ images: [] });
 		}
 		
-		// Get images from this collection
-		const { data: collectionImages, error: imagesError } = await supabase
-			.from("collection_images")
-			.select(`
-				image_id,
-				images (
-					id,
-					storage_path,
-					file_name,
-					file_size,
-					file_type,
-					capture_time,
-					uploaded_at,
-					camera_make,
-					camera_model,
-					lens_model,
-					focal_length,
-					aperture,
-					shutter_speed,
-					iso,
-					flash,
-					width,
-					height,
-					gps_latitude,
-					gps_longitude,
-					gps_altitude
-				)
-			`)
-			.eq("collection_id", collection.id)
-			.order("sort_order", { ascending: true });
-		
-		if (imagesError) {
-			console.error('Error fetching collection images:', imagesError);
-			return NextResponse.json({ error: "Failed to fetch collection images" }, { status: 500 });
-		}
-		
-		// Process images and generate signed URLs
-		const admin = createSupabaseServiceClient();
-		const bucket = project.storage_bucket as string;
-		
-		const processedImages = await Promise.all(
-			(collectionImages || []).map(async (item: {image_id: string; images: {
-				id: string;
-				storage_path: string;
-				file_name: string;
-				file_size: number;
-				file_type: string;
-				capture_time: string | null;
-				uploaded_at: string;
-				camera_make: string | null;
-				camera_model: string | null;
-				lens_model: string | null;
-				focal_length: number | null;
-				aperture: number | null;
-				shutter_speed: string | null;
-				iso: number | null;
-				flash: boolean | null;
-				width: number | null;
-				height: number | null;
-				gps_latitude: number | null;
-				gps_longitude: number | null;
-				gps_altitude: number | null;
-			} | null}) => {
-				const image = item.images;
-				if (!image) return null;
+	// Get images from this collection
+	const { data: collectionImages, error: imagesError } = await supabase
+		.from("collection_images")
+		.select(`
+			image_id,
+			images (
+				id,
+				storage_path,
+				file_name,
+				file_size,
+				file_type,
+				capture_time,
+				uploaded_at,
+				camera_make,
+				camera_model,
+				lens_model,
+				focal_length,
+				aperture,
+				shutter_speed,
+				iso,
+				flash,
+				width,
+				height,
+				gps_latitude,
+				gps_longitude,
+				gps_altitude
+			)
+		`)
+		.eq("collection_id", collection.id)
+		.order("sort_order", { ascending: true });
+	
+	if (imagesError) {
+		console.error('Error fetching collection images:', imagesError);
+		return NextResponse.json({ error: "Failed to fetch collection images" }, { status: 500 });
+	}
+	
+	// Define the type for the collection image item
+	interface CollectionImageItem {
+		image_id: string;
+		images: {
+			id: string;
+			storage_path: string;
+			file_name: string;
+			file_size: number;
+			file_type: string;
+			capture_time: string | null;
+			uploaded_at: string;
+			camera_make: string | null;
+			camera_model: string | null;
+			lens_model: string | null;
+			focal_length: number | null;
+			aperture: number | null;
+			shutter_speed: string | null;
+			iso: number | null;
+			flash: boolean | null;
+			width: number | null;
+			height: number | null;
+			gps_latitude: number | null;
+			gps_longitude: number | null;
+			gps_altitude: number | null;
+		} | null;
+	}
+	
+	// Process images and generate signed URLs
+	const admin = createSupabaseServiceClient();
+	const bucket = project.storage_bucket as string;
+	
+	const processedImages = await Promise.all(
+		(collectionImages as CollectionImageItem[] || []).map(async (item) => {
+			const image = item.images;
+			if (!image) return null;
 				
 				// Generate signed URL
 				let url = null;
