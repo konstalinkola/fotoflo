@@ -6,11 +6,39 @@ import { validateProjectName, validateStorageBucket, validateUrl, validateColor 
 
 export async function GET(request: Request) {
 	try {
-		const supabase = await createSupabaseServerClient();
+		// Check for Bearer token (for desktop app) or use session (for web app)
+		const authHeader = request.headers.get('authorization');
+		let supabase;
+		let user;
 		
-		// This will work with both session cookies AND Bearer tokens
-		const { data: { user }, error: userError } = await supabase.auth.getUser();
-		if (userError || !user) throw ERRORS.UNAUTHORIZED();
+		if (authHeader?.startsWith('Bearer ')) {
+			// Desktop app authentication with Bearer token
+			const token = authHeader.substring(7);
+			const { createClient } = await import('@supabase/supabase-js');
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+			const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+			
+			supabase = createClient(supabaseUrl, supabaseAnonKey, {
+				global: {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				}
+			});
+			
+			const { data: { user: tokenUser }, error: authError } = await supabase.auth.getUser(token);
+			if (authError || !tokenUser) {
+				console.error('Bearer token auth failed:', authError);
+				throw ERRORS.UNAUTHORIZED();
+			}
+			user = tokenUser;
+		} else {
+			// Web app authentication with session cookies
+			supabase = await createSupabaseServerClient();
+			const { data: { user: sessionUser } } = await supabase.auth.getUser();
+			if (!sessionUser) throw ERRORS.UNAUTHORIZED();
+			user = sessionUser;
+		}
 		
 		const { data: projects, error } = await supabase
 			.from("projects")
