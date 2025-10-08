@@ -90,7 +90,28 @@ export async function GET(
 		const bucket = project.storage_bucket as string;
 		
 		const processedImages = await Promise.all(
-			(collectionImages || []).map(async (item: any) => {
+			(collectionImages || []).map(async (item: {image_id: string; images: {
+				id: string;
+				storage_path: string;
+				file_name: string;
+				file_size: number;
+				file_type: string;
+				capture_time: string | null;
+				uploaded_at: string;
+				camera_make: string | null;
+				camera_model: string | null;
+				lens_model: string | null;
+				focal_length: number | null;
+				aperture: number | null;
+				shutter_speed: string | null;
+				iso: number | null;
+				flash: boolean | null;
+				width: number | null;
+				height: number | null;
+				gps_latitude: number | null;
+				gps_longitude: number | null;
+				gps_altitude: number | null;
+			} | null}) => {
 				const image = item.images;
 				if (!image) return null;
 				
@@ -150,3 +171,4 @@ export async function GET(
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}
 }
+
