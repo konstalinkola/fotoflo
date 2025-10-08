@@ -88,8 +88,8 @@ echo "3. The app should now run without issues"
 
 echo ""
 echo "🆘 Still having problems?"
-echo "• Email: support@fotoflo.com"
-echo "• Check: https://fotoflo.com/help/desktop-sync"
+echo "• Email: support@fotoflo.co"
+echo "• Check: https://fotoflo.co/help/desktop-sync"
 
 
 

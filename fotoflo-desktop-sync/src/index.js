@@ -32,7 +32,7 @@ program
 program
   .command('quick-setup')
   .description('Quick setup without wizard (for advanced users)')
-  .option('-s, --server <url>', 'Fotoflo server URL', 'https://fotoflo.com')
+  .option('-s, --server <url>', 'Fotoflo server URL', 'https://fotoflo.co')
   .action(async (options) => {
     try {
       const configManager = createConfigManager();

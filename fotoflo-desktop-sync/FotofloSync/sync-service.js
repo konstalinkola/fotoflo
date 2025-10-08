@@ -16,7 +16,7 @@ class FotofloSyncService {
         const candidates = [
             process.env.NEXT_PUBLIC_SITE_URL,
             process.env.SERVER_URL,
-            'https://fotoflo.com',
+            'https://fotoflo.co',
             'http://localhost:3000',
             'http://localhost:3001', 
             'http://localhost:3002',

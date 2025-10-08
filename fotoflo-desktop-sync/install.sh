@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="fotoflo-sync"
-DOWNLOAD_URL="https://fotoflo.com/downloads/fotoflo-sync-$(uname -s | tr '[:upper:]' '[:lower:]').zip"
+DOWNLOAD_URL="https://fotoflo.co/downloads/fotoflo-sync-$(uname -s | tr '[:upper:]' '[:lower:]').zip"
 
 echo -e "${BLUE}🚀 Fotoflo Desktop Sync Installer${NC}"
 echo -e "${BLUE}================================${NC}"

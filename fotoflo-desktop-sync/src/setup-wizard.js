@@ -18,13 +18,13 @@ export async function runSetupWizard() {
       type: 'input',
       name: 'serverUrl',
       message: 'Enter your Fotoflo server URL:',
-      default: 'https://fotoflo.com',
+      default: 'https://fotoflo.co',
       validate: (input) => {
         try {
           new URL(input);
           return true;
         } catch {
-          return 'Please enter a valid URL (e.g., https://fotoflo.com)';
+          return 'Please enter a valid URL (e.g., https://fotoflo.co)';
         }
       }
     }

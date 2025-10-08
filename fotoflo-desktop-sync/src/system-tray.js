@@ -277,7 +277,7 @@ class FotofloSystemTray {
 
     openHelp() {
         const { shell } = require('electron');
-        shell.openExternal('https://fotoflo.com/help/desktop-sync');
+        shell.openExternal('https://fotoflo.co/help/desktop-sync');
     }
 
     quitApp() {

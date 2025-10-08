@@ -108,7 +108,7 @@ class FotofloSyncService {
       'http://localhost:3003',
       process.env.NEXT_PUBLIC_SITE_URL,
       process.env.SERVER_URL,
-      'https://fotoflo.com'
+      'https://fotoflo.co'
     ];
 
     // Test each URL to see which one is actually running
