@@ -85,10 +85,39 @@ export async function POST(
 
 		const { projectId } = await params;
 	
-		// Verify user owns this project
-		const supabase = await createSupabaseServerClient();
-		const { data: { user } } = await supabase.auth.getUser();
-		if (!user) throw ERRORS.UNAUTHORIZED();
+		// Check for Bearer token (for desktop app) or use session (for web app)
+		const authHeader = request.headers.get('authorization');
+		let supabase;
+		let user;
+		
+		if (authHeader?.startsWith('Bearer ')) {
+			// Desktop app authentication with Bearer token
+			const token = authHeader.substring(7);
+			const { createClient } = await import('@supabase/supabase-js');
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+			const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+			
+			supabase = createClient(supabaseUrl, supabaseAnonKey, {
+				global: {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				}
+			});
+			
+			const { data: { user: tokenUser }, error: authError } = await supabase.auth.getUser(token);
+			if (authError || !tokenUser) {
+				console.error('Bearer token auth failed:', authError);
+				throw ERRORS.UNAUTHORIZED();
+			}
+			user = tokenUser;
+		} else {
+			// Web app authentication with session cookies
+			supabase = await createSupabaseServerClient();
+			const { data: { user: sessionUser } } = await supabase.auth.getUser();
+			if (!sessionUser) throw ERRORS.UNAUTHORIZED();
+			user = sessionUser;
+		}
 
 	const { data: project, error: projectError } = await supabase
 		.from("projects")
