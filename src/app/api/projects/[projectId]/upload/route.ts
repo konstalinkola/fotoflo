@@ -344,7 +344,9 @@ export async function POST(
 			success: true, 
 			path: data.path,
 			imageId: imageId,
-			message: "File uploaded successfully" 
+			message: "File uploaded successfully",
+			projectDisplayMode: project.display_mode,
+			addedToCollection: project.display_mode === 'collection' && imageId ? true : false
 		});
 		} catch (metadataError) {
 			console.error('Error processing image metadata:', metadataError);
