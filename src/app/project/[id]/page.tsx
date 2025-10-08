@@ -149,6 +149,16 @@ export default function ProjectPage() {
     }
   }, [displayMode, allImages.length, activeCollection]);
 
+  // Auto-refresh gallery every 10 seconds to catch desktop sync uploads
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('🔄 Auto-refreshing gallery to check for new images...');
+      setGalleryRefresh(prev => prev + 1);
+    }, 10000); // 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchLatestCollection = async () => {
     if (!projectId) return;
     
