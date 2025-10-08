@@ -165,7 +165,8 @@ export default function LoginPage() {
 
 
 	return (
-		<div className="fixed inset-0 w-full h-full bg-white flex items-center justify-center overflow-hidden">
+		<>
+			<div className="fixed inset-0 w-full h-full bg-white flex items-center justify-center overflow-hidden">
 			{/* Animated gradient background */}
 			<div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
 				<Lottie 
@@ -431,5 +432,6 @@ export default function LoginPage() {
 				</div>
 			</div>
 		)}
+		</>
 	);
 }
