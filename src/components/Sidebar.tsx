@@ -12,7 +12,8 @@ import {
   ChevronsUpDown,
   MoreHorizontal,
   LogOut,
-  Monitor
+  Monitor,
+  User
 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -261,9 +262,19 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
           )}
         </Button>
         
-        {/* Logout Menu */}
+        {/* User Menu */}
         {showLogoutMenu && !collapsed && (
           <div className="absolute bottom-full left-2 right-2 mb-2 bg-white border border-neutral-200 rounded-lg shadow-lg py-1">
+            <Link href="/profile">
+              <Button
+                variant="ghost"
+                className="w-full justify-start h-8 px-3 text-sm text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50"
+                onClick={() => setShowLogoutMenu(false)}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               className="w-full justify-start h-8 px-3 text-sm text-red-600 hover:text-red-700 hover:bg-red-50"

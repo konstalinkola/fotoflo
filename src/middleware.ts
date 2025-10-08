@@ -8,14 +8,15 @@ export async function middleware(request: NextRequest) {
 	const betaAccess = request.cookies.get("beta-access");
 	const supabaseAccessToken = request.cookies.get("sb-cjlhuplhgfnybjnzvctv-auth-token");
 	
-	// Allow access to beta-access page, API, auth callbacks, public pages, privacy policy, and reset password
+	// Allow access to beta-access page, API, auth callbacks, public pages, privacy policy, reset password, and profile
 	if (request.nextUrl.pathname.startsWith("/beta-access") || 
 		request.nextUrl.pathname.startsWith("/api/beta-access") ||
 		request.nextUrl.pathname.startsWith("/api/") ||
 		request.nextUrl.pathname.startsWith("/auth/") ||
 		request.nextUrl.pathname.startsWith("/public/") ||
 		request.nextUrl.pathname.startsWith("/privacy") ||
-		request.nextUrl.pathname.startsWith("/reset-password")) {
+		request.nextUrl.pathname.startsWith("/reset-password") ||
+		request.nextUrl.pathname.startsWith("/profile")) {
 		return NextResponse.next();
 	}
 	
