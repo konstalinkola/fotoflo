@@ -276,13 +276,15 @@ export async function POST(
 		if (project.display_mode === 'collection' && imageId) {
 			try {
 				// Check if "New Collection" exists, create if not
-				let { data: newCollection, error: collectionError } = await supabase
+				const { data: newCollection, error: collectionError } = await supabase
 					.from("collections")
 					.select("id")
 					.eq("project_id", projectId)
 					.eq("collection_number", 1)
 					.single();
 
+				let finalCollection = newCollection;
+				
 				if (collectionError || !newCollection) {
 					// Create "New Collection" (collection number 1)
 					const { data: createdCollection, error: createError } = await supabase
@@ -297,17 +299,17 @@ export async function POST(
 					if (createError) {
 						console.error('Failed to create New Collection:', createError);
 					} else {
-						newCollection = createdCollection;
-						console.log('Created New Collection with ID:', newCollection.id);
+						finalCollection = createdCollection;
+						console.log('Created New Collection with ID:', finalCollection.id);
 					}
 				}
 
-				if (newCollection) {
+				if (finalCollection) {
 					// Add image to the collection
 					const { error: addError } = await supabase
 						.from("collection_images")
 						.insert({
-							collection_id: newCollection.id,
+							collection_id: finalCollection.id,
 							image_id: imageId,
 							sort_order: 0 // Will be updated by trigger
 						});
