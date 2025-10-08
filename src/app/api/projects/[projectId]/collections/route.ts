@@ -65,7 +65,7 @@ export async function GET(
 
       return {
         ...collection,
-        name: collection.collection_number.toString(),
+        name: collection.collection_number === 1 ? "New Collection" : collection.collection_number.toString(),
         cover_image_url: coverImageUrl,
         image_count: collection.collection_images?.length || 0
       };
