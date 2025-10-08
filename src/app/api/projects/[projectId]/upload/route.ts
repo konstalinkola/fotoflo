@@ -121,7 +121,7 @@ export async function POST(
 
 	const { data: project, error: projectError } = await supabase
 		.from("projects")
-		.select("storage_bucket, storage_prefix, owner")
+		.select("storage_bucket, storage_prefix, owner, display_mode")
 		.eq("id", projectId)
 		.eq("owner", user.id)
 		.single();
@@ -270,6 +270,58 @@ export async function POST(
 		} else {
 			imageId = insertedImage?.id;
 			console.log('Successfully saved image metadata with ID:', imageId);
+		}
+
+		// For collection projects, automatically add image to "New Collection"
+		if (project.display_mode === 'collection' && imageId) {
+			try {
+				// Check if "New Collection" exists, create if not
+				let { data: newCollection, error: collectionError } = await supabase
+					.from("collections")
+					.select("id")
+					.eq("project_id", projectId)
+					.eq("collection_number", 1)
+					.single();
+
+				if (collectionError || !newCollection) {
+					// Create "New Collection" (collection number 1)
+					const { data: createdCollection, error: createError } = await supabase
+						.from("collections")
+						.insert({
+							project_id: projectId,
+							collection_number: 1
+						})
+						.select("id")
+						.single();
+
+					if (createError) {
+						console.error('Failed to create New Collection:', createError);
+					} else {
+						newCollection = createdCollection;
+						console.log('Created New Collection with ID:', newCollection.id);
+					}
+				}
+
+				if (newCollection) {
+					// Add image to the collection
+					const { error: addError } = await supabase
+						.from("collection_images")
+						.insert({
+							collection_id: newCollection.id,
+							image_id: imageId,
+							sort_order: 0 // Will be updated by trigger
+						});
+
+					if (addError) {
+						console.error('Failed to add image to collection:', addError);
+					} else {
+						console.log('Successfully added image to New Collection');
+					}
+				}
+			} catch (collectionError) {
+				console.error('Error handling collection assignment:', collectionError);
+				// Don't fail the upload if collection assignment fails
+			}
 		}
 
 		// Return both path and image ID if available
