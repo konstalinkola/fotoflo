@@ -20,6 +20,7 @@ export default function LoginPage() {
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [rememberMe, setRememberMe] = useState(false);
+	const [showForgotPassword, setShowForgotPassword] = useState(false);
 
 	// Test Supabase connection on component mount
 	useEffect(() => {
@@ -78,6 +79,35 @@ export default function LoginPage() {
 				// Set beta access cookie and redirect to dashboard
 				document.cookie = "beta-access=true; path=/; max-age=86400; SameSite=Lax"; // 24 hours
 				window.location.href = "/dashboard";
+			}
+		} catch (err) {
+			console.error("Unexpected error:", err);
+			alert("An unexpected error occurred");
+		} finally {
+			setLoading(false);
+		}
+	}
+
+	async function resetPassword() {
+		if (!email) {
+			alert("Please enter your email address");
+			return;
+		}
+
+		setLoading(true);
+		try {
+			console.log("Attempting to reset password for:", email);
+			const { error } = await supabase.auth.resetPasswordForEmail(email, {
+				redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://fotoflo.co'}/auth/callback?type=recovery`,
+			});
+			
+			if (error) {
+				console.error("Password reset error:", error);
+				alert(`Password reset failed: ${error.message}`);
+			} else {
+				console.log("Password reset email sent successfully");
+				alert("Password reset email sent! Check your inbox and follow the instructions to set a new password.");
+				setShowForgotPassword(false);
 			}
 		} catch (err) {
 			console.error("Unexpected error:", err);
@@ -217,7 +247,11 @@ export default function LoginPage() {
 												onChange={(e) => setPassword(e.target.value)}
 											/>
 											<div className="text-right">
-												<button className="text-sm text-blue-600 hover:text-blue-700">
+												<button 
+													type="button"
+													onClick={() => setShowForgotPassword(true)}
+													className="text-sm text-blue-600 hover:text-blue-700"
+												>
 													Forgot password?
 												</button>
 											</div>
@@ -351,5 +385,51 @@ export default function LoginPage() {
 				</div>
 			</div>
 		</div>
+
+		{/* Forgot Password Modal */}
+		{showForgotPassword && (
+			<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+				<div className="bg-white rounded-lg p-6 w-96 max-w-md mx-4">
+					<h3 className="text-lg font-semibold text-gray-900 mb-4">Reset Password</h3>
+					<p className="text-sm text-gray-600 mb-4">
+						Enter your email address and we'll send you a link to reset your password.
+					</p>
+					<div className="space-y-4">
+						<div>
+							<Label htmlFor="reset-email" className="text-sm font-medium text-gray-700">
+								Email Address
+							</Label>
+							<Input
+								id="reset-email"
+								type="email"
+								placeholder="Enter your email"
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								className="mt-1"
+							/>
+						</div>
+						<div className="flex space-x-3">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setShowForgotPassword(false)}
+								className="flex-1"
+								disabled={loading}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="button"
+								onClick={resetPassword}
+								className="flex-1"
+								disabled={loading || !email}
+							>
+								{loading ? "Sending..." : "Send Reset Link"}
+							</Button>
+						</div>
+					</div>
+				</div>
+			</div>
+		)}
 	);
 }
