@@ -7,11 +7,10 @@ import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   PanelLeft,
-  User,
+  User as UserIcon,
   Key,
   Trash2,
   AlertTriangle
@@ -245,7 +244,7 @@ export default function ProfilePage() {
 						{/* Page Header */}
 						<div className="flex items-center space-x-4">
 							<div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-								<User className="w-6 h-6 text-blue-600" />
+								<UserIcon className="w-6 h-6 text-blue-600" />
 							</div>
 							<div>
 								<h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
@@ -270,7 +269,7 @@ export default function ProfilePage() {
 						<Card>
 							<CardHeader>
 								<CardTitle className="flex items-center space-x-2">
-									<User className="w-5 h-5" />
+									<UserIcon className="w-5 h-5" />
 									<span>Account Information</span>
 								</CardTitle>
 							</CardHeader>
