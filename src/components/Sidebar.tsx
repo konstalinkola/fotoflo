@@ -124,7 +124,7 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
           style={{ width: '160px', height: '64px' }}
         >
           <Image
-            src="/Fotoflo-logo-white.png"
+            src="/Fotoflo-logo-black.png"
             alt="Fotoflo"
             fill
             priority

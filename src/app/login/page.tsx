@@ -370,7 +370,7 @@ export default function LoginPage() {
 				<div className="flex flex-col gap-[34px] items-end w-[471px]">
 					<div className="aspect-[587/120] w-full relative">
 						<Image
-							src="/Fotoflo-logo-white.png"
+							src="/Fotoflo-logo-black.png"
 							alt="Fotoflo"
 							fill
 							priority
