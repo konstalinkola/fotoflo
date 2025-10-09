@@ -108,21 +108,30 @@ export default function ProjectPage() {
         console.log('✅ User authenticated:', user.email);
         setUser(user);
 
+      console.log('📋 Loading projects for sidebar...');
       // Load projects for sidebar
       const { data: projectsData } = await supabase
         .from("projects")
         .select("id, name, logo_url")
         .order("created_at", { ascending: false });
 
+      console.log('📋 Sidebar projects loaded:', projectsData?.length || 0);
       setProjects(projectsData || []);
 
+      console.log('🎯 Loading current project...');
       // Load current project
       if (projectId) {
+        console.log('🎯 Fetching project data from API...');
         const res = await fetch(`/api/projects/${projectId}`);
+        console.log('🎯 Project API response status:', res.status);
+        
         if (res.ok) {
           const projectData = await res.json();
+          console.log('🎯 Project data loaded:', projectData.name);
           setProject(projectData);
           setDisplayMode((projectData.display_mode as 'single' | 'collection') || 'single');
+        } else {
+          console.error('❌ Failed to load project data, status:', res.status);
         }
       }
       
