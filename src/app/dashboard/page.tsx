@@ -70,156 +70,56 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		async function loadData() {
-			const supabase = createSupabaseBrowserClient();
-			setSupabaseClient(supabase);
-			const { data: { user } } = await supabase.auth.getUser();
+			try {
+				const supabase = createSupabaseBrowserClient();
+				setSupabaseClient(supabase);
+				const { data: { user } } = await supabase.auth.getUser();
 
-			if (!user) {
-				router.push("/login?redirect=/dashboard");
-				return;
-			}
-
-			setUser(user);
-
-			// Get user's projects
-			const { data: projectsData } = await supabase
-				.from("projects")
-				.select("id, name, storage_bucket, storage_prefix, background_color, logo_url, created_at, display_mode")
-				.order("created_at", { ascending: false });
-
-			// Fetch image counts, collection counts, and latest content for each project
-			if (projectsData && projectsData.length > 0) {
-				const projectsWithData = await Promise.all(
-					projectsData.map(async (project) => {
-						let image_count = 0;
-						let collection_count = 0;
-						let latest_upload_date: string | null = null;
-						let latest_image_url: string | null = null;
-						let latest_collection_cover_url: string | null = null;
-
-						// Get image count and latest image
-						const { data: images, count: imageCount } = await supabase
-							.from("images")
-							.select("storage_path, uploaded_at")
-							.eq("project_id", project.id)
-							.order("uploaded_at", { ascending: false });
-
-						if (images && images.length > 0) {
-							image_count = imageCount || images.length;
-							latest_upload_date = images[0].uploaded_at;
-
-							// Generate signed URL for latest image
-							if (images[0].storage_path) {
-								try {
-									const response = await fetch('/api/signed-urls', {
-										method: 'POST',
-										headers: { 'Content-Type': 'application/json' },
-										body: JSON.stringify({
-											bucket: project.storage_bucket,
-											path: images[0].storage_path
-										})
-									});
-									
-									if (response.ok) {
-										const { signedUrl } = await response.json();
-										latest_image_url = signedUrl;
-									} else {
-										// Fallback to public URL
-										latest_image_url = supabase.storage
-											.from(project.storage_bucket)
-											.getPublicUrl(images[0].storage_path).data.publicUrl;
-									}
-								} catch (error) {
-									console.error(`Exception generating signed URL for ${project.name}:`, error);
-									// Fallback to public URL
-									latest_image_url = supabase.storage
-										.from(project.storage_bucket)
-										.getPublicUrl(images[0].storage_path).data.publicUrl;
-								}
-							}
-						}
-
-						// Get collection count and latest collection
-						const { data: collections, count: collectionCount } = await supabase
-							.from("collections")
-							.select(`
-								id,
-								created_at,
-								collection_images (
-									images (
-										storage_path
-									)
-								)
-							`)
-							.eq("project_id", project.id)
-							.order("created_at", { ascending: false });
-
-						if (collections && collections.length > 0) {
-							collection_count = collectionCount || collections.length;
-
-							// Get cover image from latest collection
-							const latestCollection = collections[0];
-							const firstImage = latestCollection.collection_images?.[0]?.images?.[0];
-							if (firstImage?.storage_path) {
-								try {
-									const response = await fetch('/api/signed-urls', {
-										method: 'POST',
-										headers: { 'Content-Type': 'application/json' },
-										body: JSON.stringify({
-											bucket: project.storage_bucket,
-											path: firstImage.storage_path
-										})
-									});
-									
-									if (response.ok) {
-										const { signedUrl } = await response.json();
-										latest_collection_cover_url = signedUrl;
-									} else {
-										// Fallback to public URL
-										latest_collection_cover_url = supabase.storage
-											.from(project.storage_bucket)
-											.getPublicUrl(firstImage.storage_path).data.publicUrl;
-									}
-								} catch (error) {
-									console.error(`Exception generating signed URL for collection cover:`, error);
-									// Fallback to public URL
-									latest_collection_cover_url = supabase.storage
-										.from(project.storage_bucket)
-										.getPublicUrl(firstImage.storage_path).data.publicUrl;
-								}
-							}
-
-							// Update latest upload date if collection is newer
-							if (!latest_upload_date || new Date(latestCollection.created_at) > new Date(latest_upload_date)) {
-								latest_upload_date = latestCollection.created_at;
-							}
-						}
-
-						return {
-							...project,
-							image_count,
-							collection_count,
-							latest_upload_date,
-							latest_image_url,
-							latest_collection_cover_url
-						};
-					})
-				);
-
-				setProjects(projectsWithData);
-			} else {
-				setProjects(projectsData || []);
-			}
-
-			
-			setLoading(false);
-
-			// Show onboarding for new users (no projects yet)
-			if (!projectsData || projectsData.length === 0) {
-				const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
-				if (!hasSeenOnboarding) {
-					setShowOnboarding(true);
+				if (!user) {
+					router.push("/login?redirect=/dashboard");
+					return;
 				}
+
+				setUser(user);
+
+				console.log("📊 Dashboard: Loading projects for user:", user.email);
+
+				// Get user's projects - simplified version
+				const { data: projectsData, error } = await supabase
+					.from("projects")
+					.select("id, name, storage_bucket, storage_prefix, background_color, logo_url, created_at, display_mode")
+					.order("created_at", { ascending: false });
+
+				if (error) {
+					console.error("❌ Error fetching projects:", error);
+					setProjects([]);
+				} else {
+					console.log("📊 Dashboard: Found projects:", projectsData?.length || 0);
+					
+					// Simplified: just set basic project data without complex fetching
+					const projectsWithDefaults = (projectsData || []).map(project => ({
+						...project,
+						image_count: 0,
+						collection_count: 0,
+						latest_upload_date: null,
+						latest_image_url: null,
+						latest_collection_cover_url: null
+					}));
+					setProjects(projectsWithDefaults);
+				}
+				
+				setLoading(false);
+
+				// Show onboarding for new users (no projects yet)
+				if (!projectsData || projectsData.length === 0) {
+					const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+					if (!hasSeenOnboarding) {
+						setShowOnboarding(true);
+					}
+				}
+			} catch (error) {
+				console.error("❌ Dashboard load error:", error);
+				setLoading(false);
 			}
 		}
 
