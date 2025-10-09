@@ -93,6 +93,7 @@ export default function ProjectPage() {
   const [deletingCollections, setDeletingCollections] = useState(false);
   const [newCollectionSelectMode, setNewCollectionSelectMode] = useState(false);
   const [selectedNewCollectionImages, setSelectedNewCollectionImages] = useState<Set<string>>(new Set());
+  const [isSavingCollection, setIsSavingCollection] = useState(false);
 
 
   useEffect(() => {
@@ -281,6 +282,7 @@ export default function ProjectPage() {
   const handleSaveCollection = async () => {
     if (!supabaseClient || selectedForCollection.size === 0) return;
 
+    setIsSavingCollection(true);
     try {
       // Create a new collection
       const response = await fetch(`/api/projects/${projectId}/collections`, {
@@ -366,6 +368,8 @@ export default function ProjectPage() {
       console.error('Error saving collection:', error);
       setUploadMessage(`Failed to save collection: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setTimeout(() => setUploadMessage(""), 5000);
+    } finally {
+      setIsSavingCollection(false);
     }
   };
 
