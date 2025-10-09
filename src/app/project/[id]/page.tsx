@@ -475,7 +475,7 @@ export default function ProjectPage() {
         }
       } catch (fetchError) {
         clearTimeout(timeoutId);
-        if (fetchError.name === 'AbortError') {
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
           console.error('❌ Images API request timed out after 10 seconds');
         } else {
           throw fetchError;
