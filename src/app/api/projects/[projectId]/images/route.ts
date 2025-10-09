@@ -73,7 +73,7 @@ export async function GET(
 
 		// Process collections and get the first image from each as the cover
 		const collectionsWithCovers = await Promise.all(
-			(collections || []).map(async (collection) => {
+			(collections || []).map(async (collection: any) => {
 				const firstCollectionImage = collection.collection_images?.[0];
 				const firstImage = firstCollectionImage?.images;
 				if (!firstImage) return null;
