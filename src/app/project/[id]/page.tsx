@@ -189,13 +189,13 @@ export default function ProjectPage() {
     }
   }, [displayMode, allImages.length, activeCollection]);
 
-  // Auto-refresh every 10 seconds to catch desktop sync uploads
+  // Auto-refresh every 30 seconds to catch desktop sync uploads
   useEffect(() => {
     const interval = setInterval(() => {
       if (displayMode === 'collection') {
-        console.log('🔄 Auto-refreshing New Collection to check for new images...');
-        // For collection mode, refresh the collection images
-        setGalleryRefresh(prev => prev + 1);
+        console.log('🔄 Auto-refreshing New Collection buffer to check for new images...');
+        // For collection mode, refresh the New Collection buffer (not the main gallery)
+        fetchLatestCollection();
       } else {
         console.log('🔄 Auto-refreshing gallery to check for new images...');
         setGalleryRefresh(prev => prev + 1);

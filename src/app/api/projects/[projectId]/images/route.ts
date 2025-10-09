@@ -75,7 +75,12 @@ export async function GET(
 		if (collections && collections.length > 0) {
 			collections.forEach((col: any) => {
 				console.log(`📋 Collection #${col.collection_number}: ${col.collection_images?.length || 0} images`);
+				if (col.collection_number === 1) {
+					console.log('⚠️ WARNING: Collection #1 found in main gallery - this should be excluded!');
+				}
 			});
+		} else {
+			console.log('📋 No collections found (this is normal if no collections have been saved yet)');
 		}
 
 		// Process collections and get the first image from each as the cover
