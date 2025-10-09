@@ -278,27 +278,27 @@ export async function POST(
 		if (project.display_mode === 'collection' && imageId) {
 			console.log('Processing collection project - finding or creating collection');
 			try {
-				// First, try to find an existing "New Collection" (collection_number: 1)
-				// This represents the current batch of uploads
-				const { data: currentCollection, error: collectionError } = await supabase
-					.from("collections")
-					.select("id")
-					.eq("project_id", projectId)
-					.eq("collection_number", 1)
-					.single();
+			// First, try to find an existing "New Collection" (collection_number: 0)
+			// This represents the current batch of uploads (buffer)
+			const { data: currentCollection, error: collectionError } = await supabase
+				.from("collections")
+				.select("id")
+				.eq("project_id", projectId)
+				.eq("collection_number", 0)
+				.single();
 
 				console.log('Current collection check:', { currentCollection, collectionError });
 
 				let finalCollection = currentCollection;
 				
 				if (collectionError || !currentCollection) {
-					console.log('Creating New Collection (collection number 1) for current batch');
-					// Create "New Collection" (collection number 1) for current upload batch
+					console.log('Creating New Collection (collection number 0) for current batch');
+					// Create "New Collection" (collection number 0) for current upload batch (buffer)
 					const { data: createdCollection, error: createError } = await supabase
 						.from("collections")
 						.insert({
 							project_id: projectId,
-							collection_number: 1
+							collection_number: 0
 						})
 						.select("id")
 						.single();

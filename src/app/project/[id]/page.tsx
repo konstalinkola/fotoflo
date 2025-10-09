@@ -209,10 +209,10 @@ export default function ProjectPage() {
     if (!projectId) return;
     
     try {
-      // For collection projects, fetch collection #1 (New Collection) images
+      // For collection projects, fetch collection #0 (New Collection buffer) images
       if ((displayMode as string) === 'collection') {
-        console.log('📋 Fetching New Collection (collection #1) images...');
-        const response = await fetch(`/api/projects/${projectId}/collections/1/images`, {
+        console.log('📋 Fetching New Collection (collection #0) images...');
+        const response = await fetch(`/api/projects/${projectId}/collections/0/images`, {
           credentials: 'include'
         });
         if (response.ok) {

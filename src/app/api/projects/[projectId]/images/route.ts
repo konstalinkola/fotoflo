@@ -63,7 +63,7 @@ export async function GET(
 				)
 			`)
 			.eq('project_id', projectId)
-			.gt('collection_number', 1) // Only finalized collections (not "New Collection" #1)
+			.gt('collection_number', 0) // Only saved collections (not buffer #0)
 			.order('collection_number', { ascending: false });
 
 		if (collectionsError) {
@@ -77,8 +77,8 @@ export async function GET(
 				const collectionNumber = col.collection_number as number;
 				const collectionImages = col.collection_images as unknown[] | undefined;
 				console.log(`📋 Collection #${collectionNumber}: ${collectionImages?.length || 0} images`);
-				if (collectionNumber === 1) {
-					console.log('⚠️ WARNING: Collection #1 found in main gallery - this should be excluded!');
+				if (collectionNumber === 0) {
+					console.log('⚠️ WARNING: Collection #0 found in main gallery - this should be excluded!');
 				}
 			});
 		} else {

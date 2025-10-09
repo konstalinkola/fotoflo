@@ -34,12 +34,12 @@ export async function POST(
 			return NextResponse.json({ error: "Project is not in collection mode" }, { status: 400 });
 		}
 		
-		// Find the current "New Collection" (collection_number: 1)
+		// Find the current "New Collection" (collection_number: 0)
 		const { data: currentCollection, error: currentError } = await supabase
 			.from("collections")
 			.select("id, collection_number")
 			.eq("project_id", projectId)
-			.eq("collection_number", 1)
+			.eq("collection_number", 0)
 			.single();
 		
 		if (currentError || !currentCollection) {
@@ -74,12 +74,12 @@ export async function POST(
 			return NextResponse.json({ error: "Failed to finalize collection" }, { status: 500 });
 		}
 		
-		// Create a new "New Collection" (collection_number: 1)
+		// Create a new "New Collection" (collection_number: 0)
 		const { data: newCollection, error: createError } = await supabase
 			.from("collections")
 			.insert({
 				project_id: projectId,
-				collection_number: 1
+				collection_number: 0
 			})
 			.select("id")
 			.single();

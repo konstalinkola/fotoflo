@@ -239,13 +239,13 @@ export async function POST(
 			return NextResponse.json({ error: "Failed to add images to collection" }, { status: 500 });
 		}
 		
-		// Remove the same images from collection #1 (New Collection buffer)
+		// Remove the same images from collection #0 (New Collection buffer)
 		// This prevents the images from appearing in both the buffer and the saved collection
 		const { data: bufferCollection, error: bufferError } = await supabase
 			.from("collections")
 			.select("id")
 			.eq("project_id", projectId)
-			.eq("collection_number", 1)
+			.eq("collection_number", 0)
 			.single();
 		
 		if (!bufferError && bufferCollection) {
@@ -270,16 +270,16 @@ export async function POST(
 					.limit(1);
 				
 				if (!countError && (!remainingImages || remainingImages.length === 0)) {
-					console.log('🗑️ Collection #1 is now empty, deleting it to prevent placeholder in gallery');
+					console.log('🗑️ Collection #0 is now empty, deleting it to prevent placeholder in gallery');
 					const { error: deleteError } = await supabase
 						.from("collections")
 						.delete()
 						.eq("id", bufferCollection.id);
 					
 					if (deleteError) {
-						console.error('Error deleting empty collection #1:', deleteError);
+						console.error('Error deleting empty collection #0:', deleteError);
 					} else {
-						console.log('✅ Deleted empty collection #1');
+						console.log('✅ Deleted empty collection #0');
 					}
 				}
 			}
