@@ -769,11 +769,22 @@ export default function ProjectPage() {
 						</div>
                       <Card className="border border-neutral-200 rounded-lg flex-1 min-h-0">
                         <CardContent className="px-3 py-1 h-full overflow-auto">
-                          <NewCollection
-                            selectedImages={newCollectionImages}
-                            onSave={handleSaveCollection}
-                            onClear={handleClearCollection}
-                            onToggleSelection={handleToggleImageSelection}
+                          <ImageGallery 
+                            projectId={projectId} 
+                            displayMode={displayMode}
+                            key={galleryRefresh}
+                            viewMode={galleryView}
+                            selectMode={gallerySelectMode}
+                            onSelectModeChange={setGallerySelectMode}
+                            onActiveImageChange={handleActiveImageChange}
+                            onSelectionCountChange={setSelectedImagesCount}
+                            selectedForCollection={selectedForCollection}
+                            onToggleCollectionSelection={handleToggleImageSelection}
+                            onCollectionActivation={handleCollectionActivation}
+                            selectedCollections={selectedCollections}
+                            onToggleCollectionDeletion={handleToggleCollectionSelection}
+                            onDeleteSelectedCollections={handleDeleteSelectedCollections}
+                            activeCollectionId={activeCollection?.id}
                           />
                         </CardContent>
                       </Card>
