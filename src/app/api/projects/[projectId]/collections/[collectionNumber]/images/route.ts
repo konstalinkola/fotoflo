@@ -121,19 +121,19 @@ export async function GET(
 			const image = item.images;
 			if (!image) return null;
 				
-				// Generate signed URL
-				let url = null;
-				try {
-					const { data: signedData, error: urlError } = await admin.storage
-						.from(bucket)
-						.createSignedUrl(image.storage_path, 3600);
-					
-					if (!urlError && signedData) {
-						url = signedData.signedUrl;
-					}
-				} catch (error) {
-					console.error('Error generating signed URL:', error);
+			// Generate signed URL
+			let url: string | null = null;
+			try {
+				const { data: signedData, error: urlError } = await admin.storage
+					.from(bucket)
+					.createSignedUrl(image.storage_path, 3600);
+				
+				if (!urlError && signedData) {
+					url = signedData.signedUrl;
 				}
+			} catch (error) {
+				console.error('Error generating signed URL:', error);
+			}
 				
 				return {
 					id: image.id,
