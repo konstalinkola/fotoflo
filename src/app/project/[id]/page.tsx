@@ -353,24 +353,8 @@ export default function ProjectPage() {
       setUploadMessage(`Collection #${collection.collection_number} created with ${selectedImageIds.length} images!`);
       setTimeout(() => setUploadMessage(""), 3000);
       
-      // Collection is already created and images are added - now finalize it
+      // Collection is already created and images are added - no need to activate
       console.log('Collection created and images added successfully');
-      
-      // Finalize the current collection (move it from #1 to a higher number)
-      console.log('Finalizing collection...');
-      const finalizeResponse = await fetch(`/api/projects/${projectId}/collections/finalize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!finalizeResponse.ok) {
-        const errorData = await finalizeResponse.json();
-        console.error('Failed to finalize collection:', errorData);
-        throw new Error(`Failed to finalize collection: ${errorData.error || 'Unknown error'}`);
-      }
-      
-      const finalizeData = await finalizeResponse.json();
-      console.log('Collection finalized:', finalizeData);
       
       // Refresh gallery to show the new collection
       setGalleryRefresh(prev => prev + 1);
