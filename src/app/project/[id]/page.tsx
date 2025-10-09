@@ -158,20 +158,21 @@ export default function ProjectPage() {
     }
   }, [displayMode, allImages.length, activeCollection]);
 
-  // Auto-refresh every 10 seconds to catch desktop sync uploads
+  // Auto-refresh every 10 seconds to catch desktop sync uploads - TEMPORARILY DISABLED
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (displayMode === 'collection') {
-        console.log('🔄 Auto-refreshing New Collection to check for new images...');
-        // For collection mode, refresh the collection images
-        setGalleryRefresh(prev => prev + 1);
-      } else {
-        console.log('🔄 Auto-refreshing gallery to check for new images...');
-        setGalleryRefresh(prev => prev + 1);
-      }
-    }, 10000); // 10 seconds
+    console.log('⚠️ Auto-refresh temporarily disabled to debug loading issue');
+    // const interval = setInterval(() => {
+    //   if (displayMode === 'collection') {
+    //     console.log('🔄 Auto-refreshing New Collection to check for new images...');
+    //     // For collection mode, refresh the collection images
+    //     setGalleryRefresh(prev => prev + 1);
+    //   } else {
+    //     console.log('🔄 Auto-refreshing gallery to check for new images...');
+    //     setGalleryRefresh(prev => prev + 1);
+    //   }
+    // }, 10000); // 10 seconds
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [displayMode]);
 
   const fetchLatestCollection = async () => {
@@ -448,21 +449,42 @@ export default function ProjectPage() {
     
     try {
       console.log('🖼️ Fetching images for project:', projectId);
-      // Temporarily use the original endpoint for all projects to fix dashboard loading
-      const response = await fetch(`/api/projects/${projectId}/images`);
-      console.log('📤 Images API response status:', response.status);
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('📤 Images API response data:', data);
-        setAllImages(data.images || []);
-      } else {
-        console.error('❌ Failed to fetch images, status:', response.status);
-        const errorText = await response.text();
-        console.error('❌ Error response:', errorText);
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        // Temporarily use the original endpoint for all projects to fix dashboard loading
+        const response = await fetch(`/api/projects/${projectId}/images`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        console.log('📤 Images API response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📤 Images API response data:', data);
+          setAllImages(data.images || []);
+        } else {
+          console.error('❌ Failed to fetch images, status:', response.status);
+          const errorText = await response.text();
+          console.error('❌ Error response:', errorText);
+          setAllImages([]); // Set empty array on error
+        }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.error('❌ Images API request timed out after 10 seconds');
+        } else {
+          throw fetchError;
+        }
+        setAllImages([]); // Set empty array on timeout/error
       }
     } catch (error) {
       console.error('❌ Failed to fetch images:', error);
+      setAllImages([]); // Set empty array on error
     }
   };
 
