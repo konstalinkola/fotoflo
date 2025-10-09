@@ -92,6 +92,7 @@ export default function ProjectPage() {
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(new Set());
   const [deletingCollections, setDeletingCollections] = useState(false);
   const [newCollectionSelectMode, setNewCollectionSelectMode] = useState(false);
+  const [selectedNewCollectionImages, setSelectedNewCollectionImages] = useState<Set<string>>(new Set());
 
 
   useEffect(() => {
@@ -490,7 +491,8 @@ export default function ProjectPage() {
 
       await Promise.all(deletePromises);
       
-      // Refresh the New Collection buffer
+      // Clear selection and refresh the New Collection buffer
+      setSelectedNewCollectionImages(new Set());
       fetchLatestCollection();
       
       setUploadMessage(`${imageIds.length} image(s) deleted successfully!`);
@@ -500,6 +502,29 @@ export default function ProjectPage() {
       console.error('Error deleting images from New Collection:', error);
       setUploadMessage(`Failed to delete images: ${error instanceof Error ? error.message : 'Unknown error'}`);
       setTimeout(() => setUploadMessage(""), 5000);
+    }
+  };
+
+  const handleSelectAllNewCollection = () => {
+    if (selectedNewCollectionImages.size === newCollectionImages.length) {
+      // All selected, deselect all
+      setSelectedNewCollectionImages(new Set());
+    } else {
+      // Select all
+      const allImageIds = new Set(newCollectionImages.map(img => img.id));
+      setSelectedNewCollectionImages(allImageIds);
+    }
+  };
+
+  const handleToggleNewCollectionImageSelection = (imageId: string) => {
+    if (newCollectionSelectMode) {
+      const newSelection = new Set(selectedNewCollectionImages);
+      if (newSelection.has(imageId)) {
+        newSelection.delete(imageId);
+      } else {
+        newSelection.add(imageId);
+      }
+      setSelectedNewCollectionImages(newSelection);
     }
   };
 
@@ -825,6 +850,69 @@ export default function ProjectPage() {
                   ) : (
                     /* New Collection Section for Collection Mode - Fixed height for 2x5 grid */
                     <div className="flex-1 flex flex-col min-h-0" style={{ minHeight: 'calc(50% - 12px)' }}>
+                      <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl font-semibold text-neutral-950">New collection</h2>
+                          {newCollectionImages.length > 0 && (
+                            <>
+                              <span className="text-sm text-neutral-600">({newCollectionImages.length})</span>
+                              <Button
+                                size="sm"
+                                className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white"
+                                onClick={handleSaveCollection}
+                                disabled={isSavingCollection}
+                              >
+                                {isSavingCollection ? 'Saving...' : 'Save Collection'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3"
+                                onClick={handleClearCollection}
+                              >
+                                Clear
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {newCollectionSelectMode && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 px-3"
+                                onClick={handleSelectAllNewCollection}
+                              >
+                                {selectedNewCollectionImages.size === newCollectionImages.length ? 'Deselect All' : 'Select All'}
+                              </Button>
+                              {selectedNewCollectionImages.size > 0 && (
+                                <Button
+                                  size="sm"
+                                  className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
+                                  onClick={() => handleDeleteNewCollectionImages(Array.from(selectedNewCollectionImages))}
+                                >
+                                  Delete ({selectedNewCollectionImages.size})
+                                </Button>
+                              )}
+                            </>
+                          )}
+                          <Button
+                            size="sm"
+                            variant={newCollectionSelectMode ? "default" : "outline"}
+                            className="h-8 px-3"
+                            onClick={() => {
+                              setNewCollectionSelectMode(!newCollectionSelectMode);
+                              if (newCollectionSelectMode) {
+                                // Exiting select mode, clear selection
+                                setSelectedNewCollectionImages(new Set());
+                              }
+                            }}
+                          >
+                            {newCollectionSelectMode ? 'Cancel' : 'Select'}
+                          </Button>
+                        </div>
+                      </div>
                       <Card className="border border-neutral-200 rounded-lg flex-1 min-h-0">
                         <CardContent className="px-3 py-1 h-full overflow-auto">
                           <NewCollection
@@ -836,14 +924,15 @@ export default function ProjectPage() {
                             }))}
                             onSave={handleSaveCollection}
                             onClear={handleClearCollection}
-                            onToggleSelection={handleToggleImageSelection}
+                            onToggleSelection={handleToggleNewCollectionImageSelection}
                             selectMode={newCollectionSelectMode}
                             onSelectModeChange={setNewCollectionSelectMode}
                             onDeleteSelected={handleDeleteNewCollectionImages}
+                            selectedForDeletion={selectedNewCollectionImages}
                           />
                         </CardContent>
                       </Card>
-												</div>
+                    </div>
 											)}
 										</div>
 										

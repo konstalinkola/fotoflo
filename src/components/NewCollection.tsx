@@ -13,6 +13,7 @@ interface NewCollectionProps {
   selectMode?: boolean;
   onSelectModeChange?: (selectMode: boolean) => void;
   onDeleteSelected?: (imageIds: string[]) => void;
+  selectedForDeletion?: Set<string>;
 }
 
 export default function NewCollection({
@@ -22,10 +23,10 @@ export default function NewCollection({
   onToggleSelection,
   selectMode = false,
   onSelectModeChange,
-  onDeleteSelected
+  onDeleteSelected,
+  selectedForDeletion = new Set()
 }: NewCollectionProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedForDeletion, setSelectedForDeletion] = useState<Set<string>>(new Set());
 
   const handleSave = async () => {
     if (selectedImages.length === 0) return;
@@ -40,48 +41,6 @@ export default function NewCollection({
     }
   };
 
-  const handleToggleImageSelection = (imageId: string) => {
-    if (selectMode) {
-      const newSelection = new Set(selectedForDeletion);
-      if (newSelection.has(imageId)) {
-        newSelection.delete(imageId);
-      } else {
-        newSelection.add(imageId);
-      }
-      setSelectedForDeletion(newSelection);
-    }
-  };
-
-  const handleDeleteSelected = () => {
-    if (onDeleteSelected && selectedForDeletion.size > 0) {
-      onDeleteSelected(Array.from(selectedForDeletion));
-      setSelectedForDeletion(new Set());
-      if (onSelectModeChange) {
-        onSelectModeChange(false);
-      }
-    }
-  };
-
-  const handleToggleSelectMode = () => {
-    if (onSelectModeChange) {
-      onSelectModeChange(!selectMode);
-      if (selectMode) {
-        // Exiting select mode, clear selection
-        setSelectedForDeletion(new Set());
-      }
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedForDeletion.size === selectedImages.length) {
-      // All selected, deselect all
-      setSelectedForDeletion(new Set());
-    } else {
-      // Select all
-      const allImageIds = new Set(selectedImages.map(img => img.id));
-      setSelectedForDeletion(allImageIds);
-    }
-  };
 
   if (selectedImages.length === 0) {
     return (
@@ -97,67 +56,6 @@ export default function NewCollection({
 
   return (
     <div className="h-full overflow-auto">
-      {/* Header with Save and Select Controls */}
-      {selectedImages.length > 0 && (
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold text-neutral-950">New collection</h2>
-            {selectedImages.length > 0 && (
-              <>
-                <span className="text-sm text-neutral-600">({selectedImages.length})</span>
-                <Button
-                  size="sm"
-                  className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
-                  {isSaving ? 'Saving...' : 'Save Collection'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 px-3"
-                  onClick={onClear}
-                >
-                  Clear
-                </Button>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {selectMode && (
-              <>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 px-3"
-                  onClick={handleSelectAll}
-                >
-                  {selectedForDeletion.size === selectedImages.length ? 'Deselect All' : 'Select All'}
-                </Button>
-                {selectedForDeletion.size > 0 && (
-                  <Button
-                    size="sm"
-                    className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
-                    onClick={handleDeleteSelected}
-                  >
-                    Delete ({selectedForDeletion.size})
-                  </Button>
-                )}
-              </>
-            )}
-            <Button
-              size="sm"
-              variant={selectMode ? "default" : "outline"}
-              className="h-8 px-3"
-              onClick={handleToggleSelectMode}
-            >
-              {selectMode ? 'Cancel' : 'Select'}
-            </Button>
-          </div>
-        </div>
-      )}
-      
       <div className="grid gap-3 px-1 pt-0 pb-1 justify-center" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 120px))' }}>
         {selectedImages.map((image, index) => (
           <div 
@@ -167,7 +65,7 @@ export default function NewCollection({
                 ? 'border-blue-500 ring-2 ring-blue-300' 
                 : 'border-gray-200 hover:border-blue-400'
             }`}
-            onClick={() => handleToggleImageSelection(image.id)}
+            onClick={() => onToggleSelection(image.id)}
           >
             <div className="w-full h-full bg-gray-100">
               {image.url ? (
