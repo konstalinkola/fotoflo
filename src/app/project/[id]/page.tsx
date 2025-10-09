@@ -92,17 +92,21 @@ export default function ProjectPage() {
   const [deletingCollections, setDeletingCollections] = useState(false);
 
 
-	useEffect(() => {
+  useEffect(() => {
     async function loadData() {
-      const supabase = createSupabaseBrowserClient();
-      setSupabaseClient(supabase);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/login?redirect=/project/" + projectId);
-        return;
-      }
-      setUser(user);
+      try {
+        console.log('🔄 Project page: Starting to load data for project:', projectId);
+        const supabase = createSupabaseBrowserClient();
+        setSupabaseClient(supabase);
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          console.log('❌ No user found, redirecting to login');
+          router.push("/login?redirect=/project/" + projectId);
+          return;
+        }
+        console.log('✅ User authenticated:', user.email);
+        setUser(user);
 
       // Load projects for sidebar
       const { data: projectsData } = await supabase
@@ -129,10 +133,15 @@ export default function ProjectPage() {
         fetchActiveImage();
         fetchAllImages();
       }
+      console.log('✅ Project page: Data loading completed');
+    } catch (error) {
+      console.error('❌ Project page: Error loading data:', error);
+      setLoading(false);
     }
+  }
 
-    loadData();
-  }, [projectId, router]);
+  loadData();
+}, [projectId, router]);
 
   // Fetch images when gallery refreshes
   useEffect(() => {
@@ -438,16 +447,22 @@ export default function ProjectPage() {
     if (!projectId) return;
     
     try {
+      console.log('🖼️ Fetching images for project:', projectId);
       // Temporarily use the original endpoint for all projects to fix dashboard loading
       const response = await fetch(`/api/projects/${projectId}/images`);
+      console.log('📤 Images API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('📤 Images API response data:', data);
         setAllImages(data.images || []);
       } else {
-        console.error('Failed to fetch images, status:', response.status);
+        console.error('❌ Failed to fetch images, status:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Error response:', errorText);
       }
     } catch (error) {
-      console.error('Failed to fetch images:', error);
+      console.error('❌ Failed to fetch images:', error);
     }
   };
 
