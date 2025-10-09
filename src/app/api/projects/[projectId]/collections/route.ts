@@ -41,6 +41,7 @@ export async function GET(
       )
     `)
     .eq("project_id", projectId)
+    .gt("collection_number", 0) // Exclude collection #0 (buffer) from main gallery
     .order("collection_number");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
