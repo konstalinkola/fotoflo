@@ -189,21 +189,20 @@ export default function ProjectPage() {
     }
   }, [displayMode, allImages.length, activeCollection]);
 
-  // Auto-refresh every 10 seconds to catch desktop sync uploads - TEMPORARILY DISABLED
+  // Auto-refresh every 10 seconds to catch desktop sync uploads
   useEffect(() => {
-    console.log('⚠️ Auto-refresh temporarily disabled to debug loading issue');
-    // const interval = setInterval(() => {
-    //   if (displayMode === 'collection') {
-    //     console.log('🔄 Auto-refreshing New Collection to check for new images...');
-    //     // For collection mode, refresh the collection images
-    //     setGalleryRefresh(prev => prev + 1);
-    //   } else {
-    //     console.log('🔄 Auto-refreshing gallery to check for new images...');
-    //     setGalleryRefresh(prev => prev + 1);
-    //   }
-    // }, 10000); // 10 seconds
+    const interval = setInterval(() => {
+      if (displayMode === 'collection') {
+        console.log('🔄 Auto-refreshing New Collection to check for new images...');
+        // For collection mode, refresh the collection images
+        setGalleryRefresh(prev => prev + 1);
+      } else {
+        console.log('🔄 Auto-refreshing gallery to check for new images...');
+        setGalleryRefresh(prev => prev + 1);
+      }
+    }, 10000); // 10 seconds
 
-    // return () => clearInterval(interval);
+    return () => clearInterval(interval);
   }, [displayMode]);
 
   const fetchLatestCollection = async () => {
