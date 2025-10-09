@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function GET(
 	request: Request,
@@ -10,9 +10,12 @@ export async function GET(
 		const { projectId } = await params;
 		console.log(`🔍 API: Project ID: ${projectId}`);
 		
-		console.log("🔍 API: Creating Supabase client...");
-		const supabase = await createSupabaseServerClient();
-		console.log("🔍 API: Supabase client created");
+		console.log("🔍 API: Creating direct Supabase client...");
+		// Use direct Supabase client to avoid cookies() hanging
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+		const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+		const supabase = createClient(supabaseUrl, supabaseKey);
+		console.log("🔍 API: Direct Supabase client created");
 		
 		// Verify user is authenticated
 		console.log("🔍 API: Checking user authentication...");
