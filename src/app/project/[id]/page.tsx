@@ -846,7 +846,7 @@ export default function ProjectPage() {
                       <Card className="border border-neutral-200 rounded-lg flex-1 min-h-0">
                         <CardContent className="px-3 py-1 h-full overflow-auto">
                           <NewCollection
-                            selectedImages={newCollectionImages.filter(img => selectedForCollection.has(img.id)).map(img => ({
+                            selectedImages={newCollectionImages.map(img => ({
                               id: img.id,
                               path: img.path,
                               url: img.url,
