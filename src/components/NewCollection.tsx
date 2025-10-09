@@ -72,6 +72,17 @@ export default function NewCollection({
     }
   };
 
+  const handleSelectAll = () => {
+    if (selectedForDeletion.size === selectedImages.length) {
+      // All selected, deselect all
+      setSelectedForDeletion(new Set());
+    } else {
+      // Select all
+      const allImageIds = new Set(selectedImages.map(img => img.id));
+      setSelectedForDeletion(allImageIds);
+    }
+  };
+
   if (selectedImages.length === 0) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -86,26 +97,64 @@ export default function NewCollection({
 
   return (
     <div className="h-full overflow-auto">
-      {/* Select/Delete Controls */}
+      {/* Header with Save and Select Controls */}
       {selectedImages.length > 0 && (
-        <div className="flex items-center gap-2 mb-3 px-1">
-          <Button
-            size="sm"
-            variant={selectMode ? "default" : "outline"}
-            className="h-8 px-3"
-            onClick={handleToggleSelectMode}
-          >
-            {selectMode ? 'Cancel' : 'Select'}
-          </Button>
-          {selectMode && selectedForDeletion.size > 0 && (
+        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-neutral-950">New collection</h2>
+            {selectedImages.length > 0 && (
+              <>
+                <span className="text-sm text-neutral-600">({selectedImages.length})</span>
+                <Button
+                  size="sm"
+                  className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save Collection'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-3"
+                  onClick={onClear}
+                >
+                  Clear
+                </Button>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {selectMode && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 px-3"
+                  onClick={handleSelectAll}
+                >
+                  {selectedForDeletion.size === selectedImages.length ? 'Deselect All' : 'Select All'}
+                </Button>
+                {selectedForDeletion.size > 0 && (
+                  <Button
+                    size="sm"
+                    className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={handleDeleteSelected}
+                  >
+                    Delete ({selectedForDeletion.size})
+                  </Button>
+                )}
+              </>
+            )}
             <Button
               size="sm"
-              className="h-8 px-3 bg-red-600 hover:bg-red-700 text-white"
-              onClick={handleDeleteSelected}
+              variant={selectMode ? "default" : "outline"}
+              className="h-8 px-3"
+              onClick={handleToggleSelectMode}
             >
-              Delete ({selectedForDeletion.size})
+              {selectMode ? 'Cancel' : 'Select'}
             </Button>
-          )}
+          </div>
         </div>
       )}
       

@@ -825,57 +825,6 @@ export default function ProjectPage() {
                   ) : (
                     /* New Collection Section for Collection Mode - Fixed height for 2x5 grid */
                     <div className="flex-1 flex flex-col min-h-0" style={{ minHeight: 'calc(50% - 12px)' }}>
-                      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl font-semibold text-neutral-950">New collection</h2>
-                          {selectedForCollection.size > 0 && (
-                            <>
-                              <span className="text-sm text-neutral-600">({selectedForCollection.size})</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleClearCollection}
-                                className="h-7 px-2 text-xs"
-                              >
-                                Clear
-                              </Button>
-                            </>
-                          )}
-					</div>
-                        <div className="flex items-center gap-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 px-3"
-                            onClick={() => handleSaveCollection()}
-                            disabled={selectedForCollection.size === 0}
-                          >
-                            Save
-                          </Button>
-                          <div className="flex items-center border border-neutral-200 rounded-lg">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className={`h-8 px-2 ${galleryView === 'list' ? 'bg-neutral-100' : ''}`}
-                              onClick={() => setGalleryView('list')}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                              </svg>
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className={`h-8 px-2 ${galleryView === 'grid' ? 'bg-neutral-100' : ''}`}
-                              onClick={() => setGalleryView('grid')}
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-								</svg>
-                            </Button>
-                          </div>
-                        </div>
-										</div>
                       <Card className="border border-neutral-200 rounded-lg flex-1 min-h-0">
                         <CardContent className="px-3 py-1 h-full overflow-auto">
                           <NewCollection
