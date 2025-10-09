@@ -200,7 +200,7 @@ export default function ProjectPage() {
         console.log('🔄 Auto-refreshing gallery to check for new images...');
         setGalleryRefresh(prev => prev + 1);
       }
-    }, 10000); // 10 seconds
+    }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
   }, [displayMode]);

@@ -71,6 +71,13 @@ export async function GET(
 			return NextResponse.json({ error: "Failed to fetch collections" }, { status: 500 });
 		}
 
+		console.log('📋 Found collections:', collections?.length || 0);
+		if (collections && collections.length > 0) {
+			collections.forEach((col: any) => {
+				console.log(`📋 Collection #${col.collection_number}: ${col.collection_images?.length || 0} images`);
+			});
+		}
+
 		// Process collections and get the first image from each as the cover
 		const collectionsWithCovers = await Promise.all(
 			(collections || []).map(async (collection: Record<string, unknown>) => {
