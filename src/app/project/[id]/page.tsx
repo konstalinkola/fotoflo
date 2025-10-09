@@ -296,6 +296,7 @@ export default function ProjectPage() {
       
       console.log('Adding images to collection:', {
         collectionId: collection.id,
+        collectionNumber: collection.collection_number,
         selectedImageIds,
         selectedForCollection: selectedForCollection
       });
@@ -310,7 +311,7 @@ export default function ProjectPage() {
       
       try {
         console.log('Inside try block!');
-        console.log('Making API call to:', `/api/projects/${projectId}/collections/${collection.id}/images`);
+        console.log('Making API call to:', `/api/projects/${projectId}/collections/${collection.collection_number}/images`);
         console.log('Request body:', { image_ids: selectedImageIds });
         
         // Add timeout to the fetch request
@@ -319,7 +320,7 @@ export default function ProjectPage() {
         
         console.log('Starting fetch request...');
         
-        const addImagesResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}/images`, {
+        const addImagesResponse = await fetch(`/api/projects/${projectId}/collections/${collection.collection_number}/images`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image_ids: selectedImageIds }),
