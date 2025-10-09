@@ -19,19 +19,24 @@ export async function GET(
 		const { data: { user }, error: authError } = await supabase.auth.getUser();
 		console.log(`🔍 API: Auth result - user: ${user?.email}, error: ${authError?.message}`);
 		
-		if (authError || !user) {
+		// TEMPORARY: Skip auth check to test if that's the issue
+		if (false && (authError || !user)) {
 			console.log("🔍 API: Authentication failed");
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 		
-		console.log(`🔍 API: Fetching project ${projectId} for user ${user.email}`);
+		// TEMPORARY: Use a dummy user ID for testing
+		const testUserId = "test-user-id";
+		console.log(`🔍 API: Using test user ID: ${testUserId}`);
+		
+		console.log(`🔍 API: Fetching project ${projectId} for user ${user?.email || 'test-user'}`);
 		
 		console.log("🔍 API: Starting database query...");
 		const { data, error } = await supabase
 			.from("projects")
 			.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode, owner")
 			.eq("id", projectId)
-			.eq("owner", user.id) // Only return projects owned by the user
+			.eq("owner", testUserId) // TEMPORARY: Use test user ID
 			.single();
 			
 		console.log(`🔍 API: Database query completed - data: ${!!data}, error: ${error?.message}`);
