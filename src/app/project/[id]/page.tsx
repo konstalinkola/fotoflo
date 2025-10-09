@@ -122,16 +122,36 @@ export default function ProjectPage() {
       // Load current project
       if (projectId) {
         console.log('🎯 Fetching project data from API...');
-        const res = await fetch(`/api/projects/${projectId}`);
-        console.log('🎯 Project API response status:', res.status);
         
-        if (res.ok) {
-          const projectData = await res.json();
-          console.log('🎯 Project data loaded:', projectData.name);
-          setProject(projectData);
-          setDisplayMode((projectData.display_mode as 'single' | 'collection') || 'single');
-        } else {
-          console.error('❌ Failed to load project data, status:', res.status);
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+        
+        try {
+          const res = await fetch(`/api/projects/${projectId}`, {
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+          console.log('🎯 Project API response status:', res.status);
+          
+          if (res.ok) {
+            const projectData = await res.json();
+            console.log('🎯 Project data loaded:', projectData.name);
+            setProject(projectData);
+            setDisplayMode((projectData.display_mode as 'single' | 'collection') || 'single');
+          } else {
+            console.error('❌ Failed to load project data, status:', res.status);
+            const errorText = await res.text();
+            console.error('❌ Error response:', errorText);
+          }
+        } catch (fetchError) {
+          clearTimeout(timeoutId);
+          if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+            console.error('❌ Project API request timed out after 10 seconds');
+          } else {
+            console.error('❌ Project API request failed:', fetchError);
+          }
         }
       }
       

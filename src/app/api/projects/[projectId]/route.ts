@@ -5,15 +5,41 @@ export async function GET(
 	request: Request,
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
-	const { projectId } = await params;
-	const supabase = await createSupabaseServerClient();
-	const { data, error } = await supabase
-		.from("projects")
-		.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode")
-		.eq("id", projectId)
-		.single();
-	if (error) return NextResponse.json({ error: error.message }, { status: 404 });
-	return NextResponse.json(data);
+	try {
+		const { projectId } = await params;
+		const supabase = await createSupabaseServerClient();
+		
+		// Verify user is authenticated
+		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		if (authError || !user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		
+		console.log(`🔍 API: Fetching project ${projectId} for user ${user.email}`);
+		
+		const { data, error } = await supabase
+			.from("projects")
+			.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode, owner")
+			.eq("id", projectId)
+			.eq("owner", user.id) // Only return projects owned by the user
+			.single();
+			
+		if (error) {
+			console.error(`❌ API: Error fetching project ${projectId}:`, error);
+			return NextResponse.json({ error: error.message }, { status: 404 });
+		}
+		
+		if (!data) {
+			console.error(`❌ API: Project ${projectId} not found or not owned by user`);
+			return NextResponse.json({ error: "Project not found" }, { status: 404 });
+		}
+		
+		console.log(`✅ API: Successfully fetched project ${projectId}: ${data.name}`);
+		return NextResponse.json(data);
+	} catch (error) {
+		console.error('❌ API: Unexpected error in project GET:', error);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+	}
 }
 
 export async function PUT(
