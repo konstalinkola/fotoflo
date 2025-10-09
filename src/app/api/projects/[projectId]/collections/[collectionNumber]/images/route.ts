@@ -260,6 +260,28 @@ export async function POST(
 				// Don't fail the entire operation, just log the error
 			} else {
 				console.log(`✅ Removed ${image_ids.length} images from New Collection buffer`);
+				
+				// Check if collection #1 is now empty, and if so, delete it
+				// This prevents empty "New Collection" placeholders from appearing in the gallery
+				const { data: remainingImages, error: countError } = await supabase
+					.from("collection_images")
+					.select("id")
+					.eq("collection_id", bufferCollection.id)
+					.limit(1);
+				
+				if (!countError && (!remainingImages || remainingImages.length === 0)) {
+					console.log('🗑️ Collection #1 is now empty, deleting it to prevent placeholder in gallery');
+					const { error: deleteError } = await supabase
+						.from("collections")
+						.delete()
+						.eq("id", bufferCollection.id);
+					
+					if (deleteError) {
+						console.error('Error deleting empty collection #1:', deleteError);
+					} else {
+						console.log('✅ Deleted empty collection #1');
+					}
+				}
 			}
 		}
 		
