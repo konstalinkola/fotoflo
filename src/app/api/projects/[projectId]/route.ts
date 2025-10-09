@@ -67,7 +67,11 @@ export async function PUT(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	const { projectId } = await params;
-	const supabase = await createSupabaseServerClient();
+	// Use direct Supabase client
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+	const supabase = createClient(supabaseUrl, supabaseKey);
+	
 	const body = await request.json();
 	const { name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode } = body;
 	const { data, error } = await supabase
@@ -85,7 +89,11 @@ export async function DELETE(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	const { projectId } = await params;
-	const supabase = await createSupabaseServerClient();
+	// Use direct Supabase client
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+	const supabase = createClient(supabaseUrl, supabaseKey);
+	
 	const { error } = await supabase
 		.from("projects")
 		.delete()
