@@ -438,20 +438,13 @@ export default function ProjectPage() {
     if (!projectId) return;
     
     try {
-      if (displayMode === 'collection') {
-        // For collection mode, fetch only images from "New Collection" (collection_number: 1)
-        const response = await fetch(`/api/projects/${projectId}/collections/1/images`);
-        if (response.ok) {
-          const data = await response.json();
-          setAllImages(data.images || []);
-        }
+      // Temporarily use the original endpoint for all projects to fix dashboard loading
+      const response = await fetch(`/api/projects/${projectId}/images`);
+      if (response.ok) {
+        const data = await response.json();
+        setAllImages(data.images || []);
       } else {
-        // For single mode, fetch all images
-        const response = await fetch(`/api/projects/${projectId}/images`);
-        if (response.ok) {
-          const data = await response.json();
-          setAllImages(data.images || []);
-        }
+        console.error('Failed to fetch images, status:', response.status);
       }
     } catch (error) {
       console.error('Failed to fetch images:', error);
