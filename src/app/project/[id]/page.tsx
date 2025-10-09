@@ -129,7 +129,8 @@ export default function ProjectPage() {
         
         try {
           const res = await fetch(`/api/projects/${projectId}`, {
-            signal: controller.signal
+            signal: controller.signal,
+            credentials: 'include' // Include cookies for authentication
           });
           
           clearTimeout(timeoutId);
@@ -486,7 +487,8 @@ export default function ProjectPage() {
       try {
         // Temporarily use the original endpoint for all projects to fix dashboard loading
         const response = await fetch(`/api/projects/${projectId}/images`, {
-          signal: controller.signal
+          signal: controller.signal,
+          credentials: 'include' // Include cookies for authentication
         });
         
         clearTimeout(timeoutId);
