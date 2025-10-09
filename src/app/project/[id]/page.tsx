@@ -87,6 +87,7 @@ export default function ProjectPage() {
   const [displayMode, setDisplayMode] = useState<'single' | 'collection'>('single' as 'single' | 'collection');
   const [selectedForCollection, setSelectedForCollection] = useState<Set<string>>(new Set());
   const [allImages, setAllImages] = useState<ImageData[]>([]);
+  const [newCollectionImages, setNewCollectionImages] = useState<ImageData[]>([]);
   const [activeCollection, setActiveCollection] = useState<{id: string; name: string; cover_image_url?: string} | null>(null);
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(new Set());
   const [deletingCollections, setDeletingCollections] = useState(false);
@@ -209,15 +210,32 @@ export default function ProjectPage() {
     if (!projectId) return;
     
     try {
-      const response = await fetch(`/api/projects/${projectId}/collections`);
-      if (response.ok) {
-        const collections = await response.json();
-        if (collections && collections.length > 0) {
-          // Sort by creation date and get the latest
-          const latestCollection = collections.sort((a: {created_at: string}, b: {created_at: string}) => 
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          )[0];
-          setActiveCollection(latestCollection);
+      // For collection projects, fetch collection #1 (New Collection) images
+      if ((displayMode as string) === 'collection') {
+        console.log('📋 Fetching New Collection (collection #1) images...');
+        const response = await fetch(`/api/projects/${projectId}/collections/1/images`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📋 New Collection images:', data.images?.length || 0);
+          // Set the New Collection images for the buffer gallery
+          setNewCollectionImages(data.images || []);
+        } else {
+          console.error('Failed to fetch New Collection images:', response.status);
+        }
+      } else {
+        // For single mode, fetch all collections and get the latest
+        const response = await fetch(`/api/projects/${projectId}/collections`);
+        if (response.ok) {
+          const collections = await response.json();
+          if (collections && collections.length > 0) {
+            // Sort by creation date and get the latest
+            const latestCollection = collections.sort((a: {created_at: string}, b: {created_at: string}) => 
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )[0];
+            setActiveCollection(latestCollection);
+          }
         }
       }
     } catch (error) {
@@ -229,20 +247,22 @@ export default function ProjectPage() {
 
   const handleUploadSuccess = (uploadedData?: { paths: string[], ids: string[] }) => {
     if (uploadedData) {
-      // Always save to database and refresh gallery (same for both modes)
       setUploadMessage("Photo uploaded successfully!");
-      setGalleryRefresh(prev => prev + 1);
       
       if ((displayMode as string) === 'collection') {
+        // For collection projects, refresh the New Collection images
+        console.log('📋 Refreshing New Collection images after upload...');
+        fetchLatestCollection();
         // Auto-select newly uploaded images for the collection
         setSelectedForCollection(prev => {
           const newSet = new Set(prev);
           uploadedData.ids.forEach(id => newSet.add(id));
           return newSet;
         });
-        setUploadMessage(`${uploadedData.paths.length} image(s) uploaded and selected for new collection.`);
+        setUploadMessage(`${uploadedData.paths.length} image(s) uploaded to New Collection.`);
       } else {
-        // In single mode, also update active image
+        // For single mode, refresh the main gallery and active image
+        setGalleryRefresh(prev => prev + 1);
         fetchActiveImage();
       }
     }
@@ -836,7 +856,7 @@ export default function ProjectPage() {
                       <Card className="border border-neutral-200 rounded-lg flex-1 min-h-0">
                         <CardContent className="px-3 py-1 h-full overflow-auto">
                           <NewCollection
-                            selectedImages={allImages.filter(img => selectedForCollection.has(img.id)).map(img => ({
+                            selectedImages={newCollectionImages.filter(img => selectedForCollection.has(img.id)).map(img => ({
                               id: img.id,
                               path: img.path,
                               url: img.url,
