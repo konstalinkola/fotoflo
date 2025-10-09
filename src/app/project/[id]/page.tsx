@@ -196,6 +196,8 @@ export default function ProjectPage() {
         console.log('🔄 Auto-refreshing New Collection buffer to check for new images...');
         // For collection mode, refresh the New Collection buffer (not the main gallery)
         fetchLatestCollection();
+        // Also refresh main gallery to clear any cached collection #0
+        setGalleryRefresh(prev => prev + 1);
       } else {
         console.log('🔄 Auto-refreshing gallery to check for new images...');
         setGalleryRefresh(prev => prev + 1);
@@ -220,6 +222,7 @@ export default function ProjectPage() {
           console.log('📋 New Collection images:', data.images?.length || 0);
           // Set the New Collection images for the buffer gallery
           setNewCollectionImages(data.images || []);
+          console.log('📋 Updated newCollectionImages state with', data.images?.length || 0, 'images');
         } else {
           console.error('Failed to fetch New Collection images:', response.status);
         }
