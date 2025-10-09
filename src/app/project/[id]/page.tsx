@@ -91,6 +91,7 @@ export default function ProjectPage() {
   const [activeCollection, setActiveCollection] = useState<{id: string; name: string; cover_image_url?: string} | null>(null);
   const [selectedCollections, setSelectedCollections] = useState<Set<string>>(new Set());
   const [deletingCollections, setDeletingCollections] = useState(false);
+  const [newCollectionSelectMode, setNewCollectionSelectMode] = useState(false);
 
 
   useEffect(() => {
@@ -467,6 +468,38 @@ export default function ProjectPage() {
       setTimeout(() => setUploadMessage(""), 5000);
     } finally {
       setDeletingCollections(false);
+    }
+  };
+
+  const handleDeleteNewCollectionImages = async (imageIds: string[]) => {
+    if (imageIds.length === 0) return;
+
+    try {
+      const deletePromises = imageIds.map(async (imageId) => {
+        const response = await fetch(`/api/projects/${projectId}/images/${imageId}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to delete image ${imageId}`);
+        }
+        
+        return imageId;
+      });
+
+      await Promise.all(deletePromises);
+      
+      // Refresh the New Collection buffer
+      fetchLatestCollection();
+      
+      setUploadMessage(`${imageIds.length} image(s) deleted successfully!`);
+      setTimeout(() => setUploadMessage(""), 3000);
+      
+    } catch (error) {
+      console.error('Error deleting images from New Collection:', error);
+      setUploadMessage(`Failed to delete images: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTimeout(() => setUploadMessage(""), 5000);
     }
   };
 
@@ -855,6 +888,9 @@ export default function ProjectPage() {
                             onSave={handleSaveCollection}
                             onClear={handleClearCollection}
                             onToggleSelection={handleToggleImageSelection}
+                            selectMode={newCollectionSelectMode}
+                            onSelectModeChange={setNewCollectionSelectMode}
+                            onDeleteSelected={handleDeleteNewCollectionImages}
                           />
                         </CardContent>
                       </Card>
