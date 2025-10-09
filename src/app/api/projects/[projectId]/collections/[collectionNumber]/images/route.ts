@@ -117,7 +117,7 @@ export async function GET(
 	const bucket = project.storage_bucket as string;
 	
 	const processedImages = await Promise.all(
-		(collectionImages as CollectionImageItem[] || []).map(async (item) => {
+		((collectionImages as unknown) as CollectionImageItem[] || []).map(async (item) => {
 			const image = item.images;
 			if (!image) return null;
 				
