@@ -239,6 +239,30 @@ export async function POST(
 			return NextResponse.json({ error: "Failed to add images to collection" }, { status: 500 });
 		}
 		
+		// Remove the same images from collection #1 (New Collection buffer)
+		// This prevents the images from appearing in both the buffer and the saved collection
+		const { data: bufferCollection, error: bufferError } = await supabase
+			.from("collections")
+			.select("id")
+			.eq("project_id", projectId)
+			.eq("collection_number", 1)
+			.single();
+		
+		if (!bufferError && bufferCollection) {
+			const { error: removeError } = await supabase
+				.from("collection_images")
+				.delete()
+				.eq("collection_id", bufferCollection.id)
+				.in("image_id", image_ids);
+			
+			if (removeError) {
+				console.error('Error removing images from buffer collection:', removeError);
+				// Don't fail the entire operation, just log the error
+			} else {
+				console.log(`✅ Removed ${image_ids.length} images from New Collection buffer`);
+			}
+		}
+		
 		return NextResponse.json({ 
 			success: true, 
 			message: `Added ${image_ids.length} images to collection ${collectionNumber}`,
