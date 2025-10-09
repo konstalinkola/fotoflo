@@ -17,29 +17,63 @@ export async function GET(
 		const supabase = createClient(supabaseUrl, supabaseKey);
 		console.log("🔍 API: Direct Supabase client created");
 		
-		// Verify user is authenticated
-		console.log("🔍 API: Checking user authentication...");
-		const { data: { user }, error: authError } = await supabase.auth.getUser();
-		console.log(`🔍 API: Auth result - user: ${user?.email}, error: ${authError?.message}`);
+		// Check for authentication from either Authorization header (desktop app) or cookies (web app)
+		const authHeader = request.headers.get('authorization');
+		let user;
 		
-		// TEMPORARY: Skip auth check to test if that's the issue
-		if (false && (authError || !user)) {
-			console.log("🔍 API: Authentication failed");
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		if (authHeader?.startsWith('Bearer ')) {
+			// Desktop app authentication with Bearer token
+			const token = authHeader.substring(7);
+			const { data: { user: tokenUser }, error: authError } = await supabase.auth.getUser(token);
+			if (authError || !tokenUser) {
+				console.log("❌ Bearer token auth failed:", authError);
+				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			}
+			user = tokenUser;
+		} else {
+			// Web app authentication - get user from session
+			const { createServerClient } = await import('@supabase/ssr');
+			const { cookies } = await import('next/headers');
+			const cookieStore = await cookies();
+			
+			const supabaseSSR = createServerClient(
+				process.env.NEXT_PUBLIC_SUPABASE_URL!,
+				process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+				{
+					cookies: {
+						get(name: string) {
+							return cookieStore.get(name)?.value;
+						},
+						set(name: string, value: string, options: Record<string, unknown>) {
+							try {
+								cookieStore.set(name, value, options);
+							} catch {}
+						},
+						remove(name: string, options: Record<string, unknown>) {
+							try {
+								cookieStore.set(name, "", { ...options, maxAge: 0 });
+							} catch {}
+						},
+					},
+				}
+			);
+			
+			const { data: { user: sessionUser } } = await supabaseSSR.auth.getUser();
+			if (!sessionUser) {
+				console.log("❌ No authenticated user found");
+				return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+			}
+			user = sessionUser;
 		}
 		
-		// TEMPORARY: Use a dummy user ID for testing
-		const testUserId = "test-user-id";
-		console.log(`🔍 API: Using test user ID: ${testUserId}`);
-		
-		console.log(`🔍 API: Fetching project ${projectId} for user ${user?.email || 'test-user'}`);
+		console.log(`✅ Authenticated user: ${user.email}`);
 		
 		console.log("🔍 API: Starting database query...");
 		const { data, error } = await supabase
 			.from("projects")
 			.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode, owner")
 			.eq("id", projectId)
-			.eq("owner", testUserId) // TEMPORARY: Use test user ID
+			.eq("owner", user.id)
 			.single();
 			
 		console.log(`🔍 API: Database query completed - data: ${!!data}, error: ${error?.message}`);
