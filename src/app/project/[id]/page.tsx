@@ -353,22 +353,8 @@ export default function ProjectPage() {
       setUploadMessage(`Collection #${collection.collection_number} created with ${selectedImageIds.length} images!`);
       setTimeout(() => setUploadMessage(""), 3000);
       
-      // Auto-activate the newly created collection in the database
-      const activateResponse = await fetch(`/api/projects/${projectId}/collections/${collection.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: true })
-      });
-
-      if (!activateResponse.ok) {
-        const errorData = await activateResponse.json();
-        console.error('Failed to activate collection in database:', errorData);
-      } else {
-        console.log('Collection activated successfully in database');
-      }
-
-      // Auto-activate the newly created collection in state
-      setActiveCollection(collection);
+      // Collection is already created and images are added - no need to activate
+      console.log('Collection created and images added successfully');
       
       // Refresh gallery to show the new collection
       setGalleryRefresh(prev => prev + 1);
