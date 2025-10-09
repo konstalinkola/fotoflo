@@ -6,23 +6,35 @@ export async function GET(
 	{ params }: { params: Promise<{ projectId: string }> }
 ) {
 	try {
+		console.log("🔍 API: Starting project GET request...");
 		const { projectId } = await params;
+		console.log(`🔍 API: Project ID: ${projectId}`);
+		
+		console.log("🔍 API: Creating Supabase client...");
 		const supabase = await createSupabaseServerClient();
+		console.log("🔍 API: Supabase client created");
 		
 		// Verify user is authenticated
+		console.log("🔍 API: Checking user authentication...");
 		const { data: { user }, error: authError } = await supabase.auth.getUser();
+		console.log(`🔍 API: Auth result - user: ${user?.email}, error: ${authError?.message}`);
+		
 		if (authError || !user) {
+			console.log("🔍 API: Authentication failed");
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 		
 		console.log(`🔍 API: Fetching project ${projectId} for user ${user.email}`);
 		
+		console.log("🔍 API: Starting database query...");
 		const { data, error } = await supabase
 			.from("projects")
 			.select("id, name, logo_url, background_color, storage_bucket, storage_prefix, qr_visibility_duration, qr_expires_on_click, display_mode, owner")
 			.eq("id", projectId)
 			.eq("owner", user.id) // Only return projects owned by the user
 			.single();
+			
+		console.log(`🔍 API: Database query completed - data: ${!!data}, error: ${error?.message}`);
 			
 		if (error) {
 			console.error(`❌ API: Error fetching project ${projectId}:`, error);
