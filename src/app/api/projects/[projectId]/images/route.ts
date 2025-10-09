@@ -72,6 +72,8 @@ export async function GET(
 		}
 
 		console.log('📋 Found collections:', collections?.length || 0);
+		console.log('📋 Query used: .gt("collection_number", 0) - should exclude collection #0');
+		
 		if (collections && collections.length > 0) {
 			collections.forEach((col: Record<string, unknown>) => {
 				const collectionNumber = col.collection_number as number;
@@ -79,6 +81,7 @@ export async function GET(
 				console.log(`📋 Collection #${collectionNumber}: ${collectionImages?.length || 0} images`);
 				if (collectionNumber === 0) {
 					console.log('⚠️ WARNING: Collection #0 found in main gallery - this should be excluded!');
+					console.log('⚠️ This indicates the query .gt("collection_number", 0) is not working properly');
 				}
 			});
 		} else {
