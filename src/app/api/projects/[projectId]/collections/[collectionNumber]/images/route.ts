@@ -178,3 +178,76 @@ export async function GET(
 	}
 }
 
+export async function POST(
+	request: Request,
+	{ params }: { params: Promise<{ projectId: string; collectionNumber: string }> }
+) {
+	try {
+		const { projectId, collectionNumber } = await params;
+		const supabase = await createSupabaseServerClient();
+		
+		// Verify user owns this project
+		const { data: { user } } = await supabase.auth.getUser();
+		if (!user) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+		
+		const { data: project, error: projectError } = await supabase
+			.from("projects")
+			.select("id, name, storage_bucket, storage_prefix, owner")
+			.eq("id", projectId)
+			.eq("owner", user.id)
+			.single();
+		
+		if (projectError || !project) {
+			return NextResponse.json({ error: "Project not found or access denied" }, { status: 404 });
+		}
+		
+		// Parse request body
+		const body = await request.json();
+		const { image_ids } = body;
+		
+		if (!image_ids || !Array.isArray(image_ids)) {
+			return NextResponse.json({ error: "image_ids array is required" }, { status: 400 });
+		}
+		
+		// Find the collection by collection_number
+		const { data: collection, error: collectionError } = await supabase
+			.from("collections")
+			.select("id, collection_number")
+			.eq("project_id", projectId)
+			.eq("collection_number", parseInt(collectionNumber))
+			.single();
+		
+		if (collectionError || !collection) {
+			return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+		}
+		
+		// Add images to the collection
+		const collectionImages = image_ids.map((imageId: string, index: number) => ({
+			collection_id: collection.id,
+			image_id: imageId,
+			sort_order: index
+		}));
+		
+		const { error: insertError } = await supabase
+			.from("collection_images")
+			.insert(collectionImages);
+		
+		if (insertError) {
+			console.error('Error adding images to collection:', insertError);
+			return NextResponse.json({ error: "Failed to add images to collection" }, { status: 500 });
+		}
+		
+		return NextResponse.json({ 
+			success: true, 
+			message: `Added ${image_ids.length} images to collection ${collectionNumber}`,
+			collection_id: collection.id
+		});
+		
+	} catch (error) {
+		console.error('Error in collection images POST endpoint:', error);
+		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+	}
+}
+
