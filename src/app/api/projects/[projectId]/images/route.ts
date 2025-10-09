@@ -73,9 +73,11 @@ export async function GET(
 
 		console.log('📋 Found collections:', collections?.length || 0);
 		if (collections && collections.length > 0) {
-			collections.forEach((col: any) => {
-				console.log(`📋 Collection #${col.collection_number}: ${col.collection_images?.length || 0} images`);
-				if (col.collection_number === 1) {
+			collections.forEach((col: Record<string, unknown>) => {
+				const collectionNumber = col.collection_number as number;
+				const collectionImages = col.collection_images as unknown[] | undefined;
+				console.log(`📋 Collection #${collectionNumber}: ${collectionImages?.length || 0} images`);
+				if (collectionNumber === 1) {
 					console.log('⚠️ WARNING: Collection #1 found in main gallery - this should be excluded!');
 				}
 			});
