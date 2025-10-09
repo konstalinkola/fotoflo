@@ -446,8 +446,9 @@ export default function ProjectPage() {
     setDeletingCollections(true);
     try {
       const deletePromises = Array.from(selectedCollections).map(async (collectionId) => {
-        const response = await fetch(`/api/projects/${projectId}/collections/${collectionId}`, {
-          method: 'DELETE'
+        const response = await fetch(`/api/projects/${projectId}/collections?collectionId=${collectionId}`, {
+          method: 'DELETE',
+          credentials: 'include'
         });
         
         if (!response.ok) {
