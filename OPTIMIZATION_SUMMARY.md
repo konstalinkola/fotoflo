@@ -155,3 +155,4 @@ ALTER TABLE images ADD COLUMN IF NOT EXISTS micro_path TEXT;
 **Expected Resource Savings:** 90%+ reduction
 **Migration Risk:** Low (proven optimizations)
 **User Impact:** Positive (faster, better experience)
+

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 	const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
 	const rateLimitResult = rateLimit(`desktop-auth:${ip}`, 10, 60000);
 
-	if (!rateLimitResult.success) {
+	if (!rateLimitResult.allowed) {
 		return NextResponse.json(
 			{ error: "Too many authentication attempts" },
 			{ 
@@ -160,3 +160,4 @@ export async function GET(request: NextRequest) {
 		);
 	}
 }
+

@@ -16,3 +16,4 @@ WHERE thumbnail_path IS NOT NULL
 
 -- Create index on micro_path for faster queries
 CREATE INDEX IF NOT EXISTS idx_images_micro_path ON images(micro_path) WHERE micro_path IS NOT NULL;
+

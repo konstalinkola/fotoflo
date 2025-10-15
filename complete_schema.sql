@@ -469,3 +469,4 @@ COMMENT ON COLUMN public.deliveries.short_url IS 'Short URL for easy sharing wit
 
 -- Note: No sample data included - this is a clean schema for fresh deployment
 -- Sample data can be added after deployment for testing purposes
+
