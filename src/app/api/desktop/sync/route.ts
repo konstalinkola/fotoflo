@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Desktop app sync operations
 export async function POST(request: NextRequest) {
@@ -194,7 +195,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper functions for sync operations
-async function handleUpload(supabase: any, projectId: string, filePath: string, fileData: any, logId?: string) {
+async function handleUpload(supabase: SupabaseClient, projectId: string, _filePath: string, _fileData: unknown, _logId?: string) {
 	// This would integrate with the existing upload logic
 	// For now, we'll just validate the project exists and is enabled for desktop sync
 	const { data: project, error } = await supabase
@@ -219,7 +220,7 @@ async function handleUpload(supabase: any, projectId: string, filePath: string, 
 	// 4. Creating database records
 }
 
-async function handleDelete(supabase: any, projectId: string, filePath: string, logId?: string) {
+async function handleDelete(supabase: SupabaseClient, projectId: string, filePath: string, _logId?: string) {
 	// Find and delete the image record
 	const { data: image, error: findError } = await supabase
 		.from('images')
@@ -263,7 +264,7 @@ async function handleDelete(supabase: any, projectId: string, filePath: string, 
 	}
 }
 
-async function handleUpdate(supabase: any, projectId: string, filePath: string, fileData: any, logId?: string) {
+async function handleUpdate(supabase: SupabaseClient, projectId: string, filePath: string, fileData: unknown, logId?: string) {
 	// For updates, we'll treat it as a delete + upload
 	await handleDelete(supabase, projectId, filePath, logId);
 	await handleUpload(supabase, projectId, filePath, fileData, logId);

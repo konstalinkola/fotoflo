@@ -134,7 +134,7 @@ export async function PUT(request: NextRequest) {
 		}
 
 		// Update project settings
-		const updateData: any = {
+		const updateData: Record<string, unknown> = {
 			updated_at: new Date().toISOString()
 		};
 
