@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://cjlhuplhgfnybjnzvctv.supabase.co https://*.supabase.co https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://cjlhuplhgfnybjnzvctv.supabase.co https://*.supabase.co wss://cjlhuplhgfnybjnzvctv.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://uarllimqdhvvnqgjltac.supabase.co https://*.supabase.co https://lh3.googleusercontent.com https://*.googleusercontent.com; connect-src 'self' https://uarllimqdhvvnqgjltac.supabase.co https://*.supabase.co wss://uarllimqdhvvnqgjltac.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
           },
         ],
       },
@@ -42,13 +42,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cjlhuplhgfnybjnzvctv.supabase.co',
+        hostname: 'uarllimqdhvvnqgjltac.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
       {
         protocol: 'https',
-        hostname: 'cjlhuplhgfnybjnzvctv.supabase.co',
+        hostname: 'uarllimqdhvvnqgjltac.supabase.co',
         port: '',
         pathname: '/storage/v1/object/sign/**',
       },

@@ -156,3 +156,4 @@ ALTER TABLE images ADD COLUMN IF NOT EXISTS micro_path TEXT;
 **Migration Risk:** Low (proven optimizations)
 **User Impact:** Positive (faster, better experience)
 
+
