@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { 
@@ -123,13 +122,10 @@ export default function Sidebar({ collapsed = false, onToggle, user, projects = 
           className="relative cursor-pointer hover:opacity-80 transition-opacity"
           style={{ width: '160px', height: '64px' }}
         >
-          <Image
+          <img
             src="/Fotoflo-logo-black.png"
             alt="Fotoflo"
-            fill
-            priority
-            sizes="160px"
-            className="object-contain"
+            className="w-full h-full object-contain"
           />
         </button>
       </div>

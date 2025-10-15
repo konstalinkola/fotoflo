@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import Image from "next/image";
 import Lottie from "lottie-react";
 import gradientAnimation from "../../../public/gradient-background.json";
 import { Button } from "@/components/ui/button";
@@ -369,13 +368,10 @@ export default function LoginPage() {
 				{/* Right side - Hero content */}
 				<div className="flex flex-col gap-[34px] items-end w-[471px]">
 					<div className="aspect-[587/120] w-full relative">
-						<Image
+						<img
 							src="/Fotoflo-logo-black.png"
 							alt="Fotoflo"
-							fill
-							priority
-							sizes="471px"
-							className="object-contain"
+							className="w-full h-full object-contain"
 						/>
 					</div>
 					<div className="pb-2">
