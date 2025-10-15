@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getRateLimitHeaders } from "@/lib/rate-limit";
 
 // Beta access password from environment variable (required for security)
-const BETA_PASSWORD = process.env.BETA_ACCESS_PASSWORD;
-
-if (!BETA_PASSWORD) {
-	throw new Error("BETA_ACCESS_PASSWORD environment variable is required for security");
-}
+const getBetaPassword = () => {
+	const password = process.env.BETA_ACCESS_PASSWORD;
+	if (!password) {
+		throw new Error("BETA_ACCESS_PASSWORD environment variable is required for security");
+	}
+	return password;
+};
 
 export async function POST(request: NextRequest) {
 	// Rate limiting - 5 attempts per minute per IP
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
 	try {
 		const { password } = await request.json();
 		
-		if (password === BETA_PASSWORD) {
+		if (password === getBetaPassword()) {
 			return NextResponse.json({ success: true });
 		} else {
 			return NextResponse.json({ error: "Invalid password" }, { status: 401 });
