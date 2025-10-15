@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicImageUrl } from "@/lib/image-processor";
 
 export async function GET(
 	request: Request,
@@ -41,15 +42,25 @@ export async function GET(
 		targetImagePath = `${projectPrefix}/${newest.name}`;
 	}
 	
-	// Generate signed URL for the target image
-	const { data: signed, error: signError } = await admin.storage.from(bucket).createSignedUrl(targetImagePath, 3600);
-	if (signError) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, error: signError.message, bucket, fullPath: targetImagePath });
+	// Generate public URL for the target image (zero egress cost)
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	if (!supabaseUrl) return NextResponse.json({ url: null, logo_url: project.logo_url, background_color: project.background_color, error: "Missing Supabase URL" });
 	
-	return NextResponse.json({ 
-		url: signed.signedUrl, 
-		logo_url: project.logo_url, 
-		background_color: project.background_color,
-		qr_visibility_duration: project.qr_visibility_duration,
-		qr_expires_on_click: project.qr_expires_on_click
-	});
+	const publicUrl = getPublicImageUrl(supabaseUrl, bucket, targetImagePath);
+	
+	return NextResponse.json(
+		{ 
+			url: publicUrl, 
+			logo_url: project.logo_url, 
+			background_color: project.background_color,
+			qr_visibility_duration: project.qr_visibility_duration,
+			qr_expires_on_click: project.qr_expires_on_click
+		},
+		{
+			headers: {
+				'Cache-Control': 'public, max-age=60, stale-while-revalidate=300', // 1 min cache, 5 min stale
+				'CDN-Cache-Control': 'public, max-age=300', // 5 min CDN cache
+			}
+		}
+	);
 }

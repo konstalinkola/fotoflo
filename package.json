@@ -15,7 +15,8 @@
     "test:health": "curl -X GET 'https://fotoflo.vercel.app/api/monitoring/health'",
     "test:cache": "curl -X GET 'https://fotoflo.vercel.app/api/cache/stats'",
     "sync:start": "node start-sync-service.js",
-    "sync:dev": "npm run dev & npm run sync:start"
+    "sync:dev": "npm run dev & npm run sync:start",
+    "migrate:images": "npx tsx scripts/migrate-existing-images.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

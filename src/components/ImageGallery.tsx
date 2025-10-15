@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
+// Removed Next.js Image import - using optimized img tags instead
 import CollectionCard from "./CollectionCard";
+import { useRealTimeUpdates } from "@/hooks/useRealTimeUpdates";
 
 interface ImageData {
 	id: string; // Add the ID field
 	name: string;
-	path: string;
+	path: string; // Original storage path
+	thumbnail_path?: string | null; // 240x240px thumbnail
+	preview_path?: string | null; // 1200px preview
 	created_at: string;
 	capture_time?: string | null;
 	size?: number;
-	url: string | null;
+	url: string | null; // Now points to thumbnail for gallery display
 	source: string;
 	// Additional EXIF data
 	camera_make?: string | null;
@@ -59,8 +62,10 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 	const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
 	const [deleting, setDeleting] = useState(false);
 
-	const fetchImages = useCallback(async () => {
-		setLoading(true);
+	const fetchImages = useCallback(async (silent = false) => {
+		if (!silent) {
+			setLoading(true);
+		}
 		setError(null);
 		try {
 			if (displayMode === 'collection') {
@@ -94,7 +99,9 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to load content");
 		} finally {
-			setLoading(false);
+			if (!silent) {
+				setLoading(false);
+			}
 		}
 	}, [projectId, displayMode]);
 
@@ -243,6 +250,103 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 		};
 	}, [selectedImages]);
 
+	// Handle real-time image additions incrementally (no flash)
+	// In single mode: New images appear directly in the main gallery
+	// In collection mode: New images go to the buffer for selection into "New Collection"
+	const handleNewImage = useCallback(async (imageData: Record<string, unknown>) => {
+		console.log(`🎯 Real-time: New image received (${displayMode} mode)`, imageData);
+		
+		// Extract image details from the event
+		const newImageId = imageData.id as string;
+		
+		// Check if image already exists (prevent duplicates)
+		const exists = images.some(img => img.id === newImageId);
+		if (exists) {
+			console.log('🔄 Image already exists, skipping');
+			return;
+		}
+		
+		// Fetch only this specific image with its signed URL (optimized - no full refetch!)
+		try {
+			const response = await fetch(`/api/projects/${projectId}/images/${newImageId}`);
+			if (!response.ok) {
+				console.error('Failed to fetch new image details');
+				return;
+			}
+			
+			const data = await response.json();
+			const newImage = data.image as ImageData;
+			
+			if (newImage) {
+				const destination = displayMode === 'single' 
+					? 'main gallery' 
+					: 'selection buffer (New Collection)';
+				console.log(`✅ Adding image to ${destination} (single fetch, no flash!)`);
+				
+				// Update state with the complete image data (including URL)
+				setImages(current => {
+					// Final check to prevent race conditions
+					const stillNew = !current.some(img => img.id === newImageId);
+					if (stillNew) {
+						// Prepend new image to the beginning (latest first)
+						return [newImage, ...current];
+					}
+					return current;
+				});
+			}
+		} catch (err) {
+			console.error('Failed to fetch new image details:', err);
+		}
+	}, [projectId, images, displayMode]);
+
+	// Handle real-time image updates
+	const handleImageUpdated = useCallback((imageData: Record<string, unknown>) => {
+		console.log('🎯 Real-time: Image updated', imageData);
+		const updatedImageId = imageData.id as string;
+		
+		setImages(currentImages => 
+			currentImages.map(img => 
+				img.id === updatedImageId 
+					? { ...img, ...imageData as Partial<ImageData> }
+					: img
+			)
+		);
+	}, []);
+
+	// Handle real-time image deletions
+	const handleImageDeleted = useCallback((imageData: Record<string, unknown>) => {
+		console.log('🎯 Real-time: Image deleted', imageData);
+		const deletedImageId = imageData.id as string;
+		
+		setImages(currentImages => 
+			currentImages.filter(img => img.id !== deletedImageId)
+		);
+	}, []);
+
+	// Set up real-time updates ONLY for:
+	// 1. Single mode gallery (real-time image arrivals)
+	// 2. Collection mode buffer (images for selection into "New Collection")
+	// NOT for collection mode main gallery (only shows saved collections)
+	const shouldUseRealtime = displayMode === 'single' || displayMode === 'collection';
+	
+	const { isConnected } = useRealTimeUpdates({
+		projectId,
+		// Only handle new images in real-time (not collections)
+		// In collection mode, new images go to buffer for selection
+		// In single mode, new images appear directly in gallery
+		onNewImage: shouldUseRealtime ? handleNewImage : undefined,
+		onImageUpdated: shouldUseRealtime ? handleImageUpdated : undefined,
+		onImageDeleted: shouldUseRealtime ? handleImageDeleted : undefined,
+		onConnected: () => {
+			if (shouldUseRealtime) {
+				console.log(`✅ Real-time connection established for ${displayMode} mode gallery`);
+			}
+		},
+		onError: (error) => {
+			console.error('❌ Real-time connection error:', error);
+		}
+	});
+
 	useEffect(() => {
 		fetchImages();
 	}, [fetchImages]);
@@ -268,7 +372,7 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 			<div>
 				<div className="text-red-600 mb-4">{error}</div>
 				<button 
-					onClick={fetchImages}
+					onClick={() => fetchImages()}
 					className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
 				>
 					Retry
@@ -278,7 +382,15 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 	}
 
 	return (
-		<div className="h-full">
+		<div className="h-full relative">
+			{/* Real-time connection indicator - only show in modes that use real-time */}
+			{isConnected && shouldUseRealtime && (
+				<div className="absolute top-2 right-2 z-10 flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1 text-xs text-green-700">
+					<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+					<span>Live</span>
+				</div>
+			)}
+			
 			{displayMode === 'collection' ? (
 				collections.length === 0 ? (
 					<div className="text-center py-8 text-gray-500">
@@ -485,12 +597,11 @@ export default function ImageGallery({ projectId, displayMode = 'single', viewMo
 						>
 							<div className="w-full h-full bg-gray-100">
 								{image.url ? (
-									<Image
+									<img
 										src={image.url}
 										alt={image.name}
-										fill
-										className="object-cover"
-										sizes="120px"
+										className="w-full h-full object-cover"
+										loading="lazy"
 									/>
 								) : (
 									<div className="w-full h-full flex items-center justify-center text-gray-400">

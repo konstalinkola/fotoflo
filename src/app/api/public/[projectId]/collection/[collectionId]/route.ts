@@ -30,7 +30,7 @@ export async function GET(
       return NextResponse.json({ error: "Project is not in collection mode" }, { status: 400 });
     }
 
-    // Get the specific collection
+    // Get the specific collection with image variants
     const { data: collection, error: collectionError } = await supabase
       .from("collections")
       .select(`
@@ -41,6 +41,8 @@ export async function GET(
           images (
             id,
             storage_path,
+            thumbnail_path,
+            preview_path,
             file_name,
             width,
             height
@@ -62,32 +64,62 @@ export async function GET(
       }, { status: 404 });
     }
 
-    // Generate signed URLs for all images in the collection
+    // Generate signed URLs for all images in the collection (thumbnail, preview, original)
     const imagesWithUrls = await Promise.all(
-      (collection.collection_images || []).map(async (collectionImage: { sort_order: number; images?: { id: string; storage_path: string; file_name: string; width: number; height: number }[] }) => {
+      (collection.collection_images || []).map(async (collectionImage: { 
+        sort_order: number; 
+        images?: { 
+          id: string; 
+          storage_path: string; 
+          thumbnail_path?: string | null;
+          preview_path?: string | null;
+          file_name: string; 
+          width: number; 
+          height: number 
+        }[] 
+      }) => {
         const image = collectionImage.images?.[0];
         if (!image?.storage_path) return null;
 
         try {
-          const { data: signed, error: signedError } = await supabase.storage
-            .from(project.storage_bucket)
-            .createSignedUrl(image.storage_path, 3600);
+          // Generate signed URLs for all three variants
+          const [thumbnailResult, previewResult, originalResult] = await Promise.all([
+            // Thumbnail for grid display
+            supabase.storage
+              .from(project.storage_bucket)
+              .createSignedUrl(image.thumbnail_path || image.storage_path, 3600),
+            // Preview for lightbox
+            supabase.storage
+              .from(project.storage_bucket)
+              .createSignedUrl(image.preview_path || image.storage_path, 3600),
+            // Original for download
+            supabase.storage
+              .from(project.storage_bucket)
+              .createSignedUrl(image.storage_path, 3600),
+          ]);
           
-          if (signedError) {
-            console.error('Failed to create signed URL:', signedError);
+          if (thumbnailResult.error || previewResult.error || originalResult.error) {
+            console.error('Failed to create signed URLs:', {
+              thumbnail: thumbnailResult.error,
+              preview: previewResult.error,
+              original: originalResult.error
+            });
             return null;
           }
 
           return {
             id: image.id,
             name: image.file_name,
-            signed_url: signed?.signedUrl,
+            signed_url: thumbnailResult.data?.signedUrl, // Deprecated: use thumbnail_url instead
+            thumbnail_url: thumbnailResult.data?.signedUrl, // For grid display
+            preview_url: previewResult.data?.signedUrl, // For lightbox
+            original_url: originalResult.data?.signedUrl, // For downloads
             width: image.width,
             height: image.height,
             sort_order: collectionImage.sort_order
           };
         } catch (error) {
-          console.error('Error creating signed URL:', error);
+          console.error('Error creating signed URLs:', error);
           return null;
         }
       })

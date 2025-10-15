@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
-import Image from "next/image";
+// Removed Next.js Image import - using optimized img tags instead
 import { Download, X } from "lucide-react";
 
 export default function PublicProjectPage() {
@@ -31,7 +31,12 @@ export default function PublicProjectPage() {
 	
 	// Collection gallery state
 	const [isCollectionMode, setIsCollectionMode] = useState<boolean>(false);
-	const [collectionImages, setCollectionImages] = useState<{id: string; signed_url: string}[]>([]);
+	const [collectionImages, setCollectionImages] = useState<{
+		id: string; 
+		thumbnail_url: string; 
+		preview_url: string; 
+		original_url: string;
+	}[]>([]);
 	const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 	const [showGallery, setShowGallery] = useState<boolean>(false);
 	
@@ -194,9 +199,10 @@ export default function PublicProjectPage() {
 	const downloadAllImages = async () => {
 		for (let i = 0; i < collectionImages.length; i++) {
 			const image = collectionImages[i];
-			if (image.signed_url) {
+			// Download original full-resolution images
+			if (image.original_url) {
 				try {
-					const response = await fetch(image.signed_url);
+					const response = await fetch(image.original_url);
 					const blob = await response.blob();
 					const url = window.URL.createObjectURL(blob);
 					const a = document.createElement('a');
@@ -240,7 +246,7 @@ export default function PublicProjectPage() {
 						<div className="flex justify-between items-center h-16">
 							{/* Logo */}
 							{logoUrl && (
-								<Image 
+								<img 
 									src={logoUrl} 
 									alt="Logo" 
 									width={40} 
@@ -270,12 +276,11 @@ export default function PublicProjectPage() {
 								className="aspect-square bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
 								onClick={() => openImage(index)}
 							>
-								<Image
-									src={image.signed_url}
+								<img
+									src={image.thumbnail_url}
 									alt={`Image ${index + 1}`}
-									width={300}
-									height={300}
 									className="w-full h-full object-cover"
+									loading="lazy"
 								/>
 							</div>
 						))}
@@ -317,12 +322,10 @@ export default function PublicProjectPage() {
 								</button>
 							)}
 
-							{/* Image */}
-							<Image
-								src={collectionImages[selectedImageIndex].signed_url}
+							{/* Image - using preview variant for lightbox */}
+							<img
+								src={collectionImages[selectedImageIndex].preview_url}
 								alt={`Image ${selectedImageIndex + 1}`}
-								width={800}
-								height={600}
 								className="max-w-full max-h-full object-contain"
 							/>
 
@@ -360,7 +363,7 @@ export default function PublicProjectPage() {
 								zIndex: 10
 							}}
 						>
-							<Image 
+							<img 
 								src={logoUrl} 
 								alt="Logo" 
 								width={logoSize} 

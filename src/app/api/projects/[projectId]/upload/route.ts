@@ -5,6 +5,8 @@ import { parse } from "exifr";
 import { checkRequestSize, checkFileSize } from "@/lib/request-limits";
 import { handleApiError, ERRORS } from "@/lib/error-handler";
 import { sanitizeFileName } from "@/lib/validation";
+import { broadcastToProject } from "../events/route";
+import { processImageVariants, buildVariantPath } from "@/lib/image-processor";
 
 /**
  * EXIF data extracted from uploaded images
@@ -175,7 +177,7 @@ export async function POST(
 	const secureFileName = `${timestamp}.${fileExtension}`;
 	const securePath = `${projectId}/${secureFileName}`;
 
-	// Extract EXIF data from the image
+	// Extract EXIF data from the image before processing variants
 	let exifData: ExifData | null = null;
 	try {
 		const arrayBuffer = await file.arrayBuffer();
@@ -204,33 +206,95 @@ export async function POST(
 		// Continue with upload even if EXIF extraction fails
 	}
 
-	// Upload to Supabase Storage using service client
-	const admin = createSupabaseServiceClient();
-	const { data, error: uploadError } = await admin.storage
-		.from(project.storage_bucket)
-		.upload(securePath, file, {
-			cacheControl: "3600",
-			upsert: false
-		});
+	// Generate image variants (thumbnail, preview, original)
+	console.log('🖼️  Generating image variants...');
+	let variants;
+	try {
+		variants = await processImageVariants(file);
+		console.log('✅ Image variants generated successfully');
+	} catch (variantError) {
+		console.error('❌ Failed to generate image variants:', variantError);
+		return NextResponse.json({ error: "Failed to process image" }, { status: 500 });
+	}
 
-	if (uploadError) {
+	// Build storage paths for all variants
+	const microPath = buildVariantPath(projectId, timestamp, 'micro');
+	const thumbnailPath = buildVariantPath(projectId, timestamp, 'thumbnail');
+	const previewPath = buildVariantPath(projectId, timestamp, 'preview');
+
+	// Upload all four variants to Supabase Storage using service client
+	const admin = createSupabaseServiceClient();
+	
+	console.log('📤 Uploading original, micro, thumbnail, and preview...');
+	const uploadResults = await Promise.all([
+		// Upload original (optimized JPEG)
+		admin.storage.from(project.storage_bucket).upload(securePath, variants.original, {
+			cacheControl: "3600",
+			upsert: false,
+			contentType: 'image/jpeg',
+		}),
+		// Upload micro thumbnail
+		admin.storage.from(project.storage_bucket).upload(microPath, variants.micro, {
+			cacheControl: "3600",
+			upsert: false,
+			contentType: 'image/jpeg',
+		}),
+		// Upload thumbnail
+		admin.storage.from(project.storage_bucket).upload(thumbnailPath, variants.thumbnail, {
+			cacheControl: "3600",
+			upsert: false,
+			contentType: 'image/jpeg',
+		}),
+		// Upload preview
+		admin.storage.from(project.storage_bucket).upload(previewPath, variants.preview, {
+			cacheControl: "3600",
+			upsert: false,
+			contentType: 'image/jpeg',
+		}),
+	]);
+
+	// Check for upload errors
+	const [originalUpload, microUpload, thumbnailUpload, previewUpload] = uploadResults;
+	
+	if (originalUpload.error) {
 		// Provide more helpful error messages
-		let errorMessage = uploadError.message;
-		if (uploadError.message.includes("Bucket not found")) {
+		let errorMessage = originalUpload.error.message;
+		if (originalUpload.error.message.includes("Bucket not found")) {
 			errorMessage = "Storage bucket not found. Please contact support to set up your storage.";
-		} else if (uploadError.message.includes("quota")) {
+		} else if (originalUpload.error.message.includes("quota")) {
 			errorMessage = "Storage quota exceeded. Please delete some old photos or upgrade your plan.";
-		} else if (uploadError.message.includes("size")) {
+		} else if (originalUpload.error.message.includes("size")) {
 			errorMessage = "File too large. Maximum size is 10MB.";
 		}
 		return NextResponse.json({ error: errorMessage }, { status: 500 });
 	}
+
+	if (microUpload.error) {
+		console.warn('⚠️  Micro thumbnail upload failed:', microUpload.error);
+		// Continue even if micro fails - we can regenerate later
+	}
+
+	if (thumbnailUpload.error) {
+		console.warn('⚠️  Thumbnail upload failed:', thumbnailUpload.error);
+		// Continue even if thumbnail fails - we can regenerate later
+	}
+
+	if (previewUpload.error) {
+		console.warn('⚠️  Preview upload failed:', previewUpload.error);
+		// Continue even if preview fails - we can regenerate later
+	}
+
+	console.log('✅ All variants uploaded successfully');
+	const data = originalUpload.data;
 
 	// Save image metadata to database
 	try {
 		const imageMetadata = {
 			project_id: projectId,
 			storage_path: data.path,
+			micro_path: microUpload.data?.path || null,
+			thumbnail_path: thumbnailUpload.data?.path || null,
+			preview_path: previewUpload.data?.path || null,
 			file_name: sanitizedFileName,
 			file_size: file.size,
 			file_type: file.type,
@@ -270,6 +334,20 @@ export async function POST(
 		} else {
 			imageId = insertedImage?.id;
 			console.log('Successfully saved image metadata with ID:', imageId);
+			
+			// Broadcast real-time event to all connected clients
+			broadcastToProject(projectId, {
+				type: 'new_image',
+				data: {
+					id: imageId,
+					name: sanitizedFileName,
+					path: data.path,
+					created_at: new Date().toISOString(),
+					project_id: projectId,
+					source: 'web'
+				}
+			});
+			console.log('📡 Broadcasted new image event to project:', projectId);
 		}
 
 		// For collection projects, create or use a current collection

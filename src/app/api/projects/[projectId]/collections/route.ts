@@ -34,6 +34,8 @@ export async function GET(
         images (
           id,
           storage_path,
+          thumbnail_path,
+          preview_path,
           file_name,
           width,
           height
@@ -46,18 +48,20 @@ export async function GET(
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  // Generate signed URLs for cover images
+  // Generate signed URLs for cover images (use thumbnails for performance)
   const admin = createSupabaseServiceClient();
   const collectionsWithUrls = await Promise.all(
     (data || []).map(async (collection) => {
       const firstCollectionImage = collection.collection_images?.[0];
-      const firstImage = (firstCollectionImage?.images as unknown) as { storage_path: string } | undefined;
+      const firstImage = (firstCollectionImage?.images as unknown) as { storage_path: string; thumbnail_path?: string } | undefined;
       let coverImageUrl: string | null = null;
       
-      if (firstImage?.storage_path) {
+      if (firstImage) {
+        // Prefer thumbnail for collection covers, fall back to original if not available
+        const coverPath = firstImage.thumbnail_path || firstImage.storage_path;
         const { data: signed, error: signedError } = await admin.storage
           .from(project.storage_bucket)
-          .createSignedUrl(firstImage.storage_path, 3600);
+          .createSignedUrl(coverPath, 3600);
         
         if (!signedError) {
           coverImageUrl = signed?.signedUrl || null;

@@ -42,7 +42,18 @@ export async function GET(request: Request) {
 		
 		const { data: projects, error } = await supabase
 			.from("projects")
-			.select("id, name, display_mode, storage_bucket, storage_prefix, created_at")
+			.select(`
+				id, 
+				name, 
+				display_mode, 
+				storage_bucket, 
+				storage_prefix, 
+				desktop_sync_enabled,
+				watch_folder_path,
+				auto_upload_enabled,
+				created_at,
+				updated_at
+			`)
 			.eq("owner", user.id)
 			.order("created_at", { ascending: false });
 		
@@ -80,7 +91,16 @@ export async function POST(request: Request) {
 			return NextResponse.json({ error: jsonCheck.error }, { status: 413 });
 		}
 
-		const { name, backgroundColor, logoUrl, storageBucket, storagePrefix } = body;
+		const { 
+			name, 
+			backgroundColor, 
+			logoUrl, 
+			storageBucket, 
+			storagePrefix,
+			desktopSyncEnabled,
+			watchFolderPath,
+			autoUploadEnabled
+		} = body;
 
 		// Enhanced input validation
 		const validatedName = validateProjectName(name);
@@ -92,6 +112,15 @@ export async function POST(request: Request) {
 		if (storagePrefix && typeof storagePrefix !== 'string') {
 			throw ERRORS.VALIDATION_ERROR('Storage prefix must be a string');
 		}
+
+		// Validate desktop app settings
+		const validatedDesktopSyncEnabled = Boolean(desktopSyncEnabled);
+		const validatedAutoUploadEnabled = autoUploadEnabled !== undefined ? Boolean(autoUploadEnabled) : true;
+		
+		if (watchFolderPath && typeof watchFolderPath !== 'string') {
+			throw ERRORS.VALIDATION_ERROR('Watch folder path must be a string');
+		}
+
 		const { data, error } = await supabase
 			.from("projects")
 			.insert({
@@ -100,6 +129,9 @@ export async function POST(request: Request) {
 				logo_url: validatedLogoUrl,
 				storage_bucket: validatedStorageBucket,
 				storage_prefix: storagePrefix || null,
+				desktop_sync_enabled: validatedDesktopSyncEnabled,
+				watch_folder_path: watchFolderPath || null,
+				auto_upload_enabled: validatedAutoUploadEnabled,
 				owner: user.id,
 			})
 			.select("id")

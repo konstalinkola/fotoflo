@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicImageUrl, getOptimizedImageUrls } from "@/lib/image-processor";
 
 export async function GET(
 	request: Request,
@@ -42,6 +43,8 @@ export async function GET(
 					images (
 						id,
 						storage_path,
+						thumbnail_path,
+						preview_path,
 						file_name,
 						uploaded_at,
 						capture_time,
@@ -95,10 +98,11 @@ export async function GET(
 				const firstImage = firstCollectionImage?.images;
 				if (!firstImage) return null;
 
-				// Generate signed URL for the cover image
-				const { data: signed } = await admin.storage
-					.from(bucket)
-					.createSignedUrl(firstImage.storage_path, 3600);
+				// Generate public URL for the cover image thumbnail (zero egress cost)
+				// Prefer thumbnail for collection covers, fall back to original if not available
+				const coverImagePath = firstImage.thumbnail_path || firstImage.storage_path;
+				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+				const publicUrl = supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, coverImagePath) : null;
 
 				return {
 					id: collection.id,
@@ -109,7 +113,9 @@ export async function GET(
 						id: firstImage.id,
 						name: firstImage.file_name,
 						path: firstImage.storage_path,
-						url: signed?.signedUrl || null,
+						thumbnail_path: firstImage.thumbnail_path,
+						preview_path: firstImage.preview_path,
+						url: publicUrl, // This is now the thumbnail URL (public)
 						capture_time: firstImage.capture_time,
 						size: firstImage.file_size,
 						camera_make: firstImage.camera_make,
@@ -131,7 +137,15 @@ export async function GET(
 			})
 		);
 
-		return NextResponse.json({ images: collectionsWithCovers.filter(Boolean) });
+		return NextResponse.json(
+			{ images: collectionsWithCovers.filter(Boolean) },
+			{
+				headers: {
+					'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600', // 5 min cache, 1 hour stale
+					'CDN-Cache-Control': 'public, max-age=3600', // 1 hour CDN cache
+				}
+			}
+		);
 	} else {
 		// For single mode projects, return individual images
 		console.log('📋 Single mode project detected, fetching individual images...');
@@ -171,65 +185,90 @@ export async function GET(
 					source: 'project'
 				})) : [];
 
-				const imagesWithUrls = await Promise.all(
-					allImages.map(async (img) => {
-						const { data: signed } = await admin.storage
-							.from(bucket)
-							.createSignedUrl(img.path, 3600);
-						
-						return {
-							id: img.path, // Use path as ID for storage-only images
-							name: img.name,
-							path: img.path,
-							created_at: img.created_at,
-							capture_time: null, // No EXIF data available
-							size: img.metadata?.size,
-							url: signed?.signedUrl || null,
-							source: img.source
-						};
-					})
-				);
+				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+				const imagesWithUrls = allImages.map((img) => {
+					const publicUrl = supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.path) : null;
+					
+					return {
+						id: img.path, // Use path as ID for storage-only images
+						name: img.name,
+						path: img.path,
+						created_at: img.created_at,
+						capture_time: null, // No EXIF data available
+						size: img.metadata?.size,
+						url: publicUrl,
+						source: img.source
+					};
+				});
 
-				return NextResponse.json({ images: imagesWithUrls });
+				return NextResponse.json(
+					{ images: imagesWithUrls },
+					{
+						headers: {
+							'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600', // 5 min cache, 1 hour stale
+							'CDN-Cache-Control': 'public, max-age=3600', // 1 hour CDN cache
+						}
+					}
+				);
 			}
 			
 			return NextResponse.json({ error: "Failed to fetch images", details: dbError.message }, { status: 500 });
 		}
 
-		// Generate signed URLs for each image and combine with metadata
-		const imagesWithUrls = await Promise.all(
-			(dbImages || []).map(async (img) => {
-				const { data: signed } = await admin.storage
-					.from(bucket)
-					.createSignedUrl(img.storage_path, 3600);
-				
-				return {
-					id: img.id, // Add the image ID
-					name: img.file_name,
-					path: img.storage_path,
-					created_at: img.uploaded_at,
-					capture_time: img.capture_time,
-					size: img.file_size,
-					url: signed?.signedUrl || null,
-					source: 'project',
-					// Include additional EXIF data if needed
-					camera_make: img.camera_make,
-					camera_model: img.camera_model,
-					lens_model: img.lens_model,
-					focal_length: img.focal_length,
-					aperture: img.aperture,
-					shutter_speed: img.shutter_speed,
-					iso: img.iso,
-					flash: img.flash,
-					width: img.width,
-					height: img.height,
-					gps_latitude: img.gps_latitude,
-					gps_longitude: img.gps_longitude,
-					gps_altitude: img.gps_altitude
-				};
-			})
-		);
+		// Generate public URLs for all image variants (zero egress cost)
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+		const imagesWithUrls = (dbImages || []).map((img) => {
+			// Extract timestamp from storage path for URL generation
+			const timestamp = img.storage_path.split('/').pop()?.split('.')[0];
+			
+			// Generate optimized URLs for all variants
+			const optimizedUrls = timestamp && supabaseUrl 
+				? getOptimizedImageUrls(supabaseUrl, bucket, projectId, parseInt(timestamp))
+				: null;
+			
+			return {
+				id: img.id, // Add the image ID
+				name: img.file_name,
+				path: img.storage_path, // Keep original path for reference
+				micro_path: img.micro_path,
+				thumbnail_path: img.thumbnail_path,
+				preview_path: img.preview_path,
+				created_at: img.uploaded_at,
+				capture_time: img.capture_time,
+				size: img.file_size,
+				// Use micro thumbnail for gallery display (smallest file size)
+				url: optimizedUrls?.micro || (img.micro_path && supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.micro_path) : null),
+				// Include all variant URLs for different use cases
+				micro_url: optimizedUrls?.micro || (img.micro_path && supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.micro_path) : null),
+				thumbnail_url: optimizedUrls?.thumbnail || (img.thumbnail_path && supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.thumbnail_path) : null),
+				preview_url: optimizedUrls?.preview || (img.preview_path && supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.preview_path) : null),
+				original_url: optimizedUrls?.original || (supabaseUrl ? getPublicImageUrl(supabaseUrl, bucket, img.storage_path) : null),
+				source: 'project',
+				// Include additional EXIF data if needed
+				camera_make: img.camera_make,
+				camera_model: img.camera_model,
+				lens_model: img.lens_model,
+				focal_length: img.focal_length,
+				aperture: img.aperture,
+				shutter_speed: img.shutter_speed,
+				iso: img.iso,
+				flash: img.flash,
+				width: img.width,
+				height: img.height,
+				gps_latitude: img.gps_latitude,
+				gps_longitude: img.gps_longitude,
+				gps_altitude: img.gps_altitude
+			};
+		});
 
-		return NextResponse.json({ images: imagesWithUrls });
+		return NextResponse.json(
+			{ images: imagesWithUrls },
+			{
+				headers: {
+					'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600', // 5 min cache, 1 hour stale
+					'CDN-Cache-Control': 'public, max-age=3600', // 1 hour CDN cache
+				}
+			}
+		);
 	}
 }
