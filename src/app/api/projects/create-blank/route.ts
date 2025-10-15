@@ -44,7 +44,9 @@ export async function POST(request: Request) {
 			storage_prefix: "", // Will be set to project ID after creation
 			qr_visibility_duration: 0,
 			qr_expires_on_click: false,
-			customization_settings: null
+			display_mode: "single",
+			desktop_sync_enabled: false,
+			auto_upload_enabled: true
 		})
 		.select("id")
 		.single();
